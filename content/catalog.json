@@ -1,0 +1,1895 @@
+[
+  {
+    "id": "orientation",
+    "title": "从三个项目开始，建立学习地图",
+    "section": "start",
+    "summary": "把性能、数值可靠性和编译正确性放回同一条模型执行链。",
+    "prereq": [],
+    "sources": [
+      "guide",
+      "qreadme",
+      "dfuzz",
+      "deepop"
+    ],
+    "tags": [
+      "学习路线",
+      "证据",
+      "项目"
+    ],
+    "level": 1,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "为什么三类项目不能用同一个“加速比”评价？",
+        "a": "Qwen 性能实验比较时间、显存等；DFuzz 比较数值偏差和搜索命中率；DeepOpFuzz 比较已验证 bug 与固定预算下触达情况。它们的分子、分母和实验目标都不同。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "tensor-layout",
+    "title": "Tensor、stride 与 alias：一块内存怎样有多种形状",
+    "section": "foundations",
+    "summary": "从二维地址计算推导 view、transpose、contiguous 与 stride-0。",
+    "prereq": [
+      "orientation"
+    ],
+    "sources": [
+      "views",
+      "qkernel",
+      "bug-bwd"
+    ],
+    "tags": [
+      "stride",
+      "alias",
+      "layout",
+      "contiguous"
+    ],
+    "level": 1,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "shape=[2,3]，stride=[1,2]，offset=0；(1,2) 在哪里？",
+        "a": "元素偏移 1×1+2×2=5。若 FP32，则字节偏移为20。它不是常规 row-major 布局。"
+      },
+      {
+        "q": "一个 stride-0 维度能表示不同数值的独立输出吗？",
+        "a": "不能在同一 storage 映射下让别名位置保存不同值。需要合适的输出存储，或让该维数据本来就完全相同。"
+      }
+    ],
+    "lab": "labs/01_layout.py"
+  },
+  {
+    "id": "gemm-flops",
+    "title": "从一个点积推导 2MNK 与训练 6P",
+    "section": "foundations",
+    "summary": "不背计算量公式：逐个数乘法和加法，再推导反向传播。",
+    "prereq": [
+      "tensor-layout"
+    ],
+    "sources": [
+      "nvidia-matmul",
+      "qconfig"
+    ],
+    "tags": [
+      "FLOPs",
+      "GEMM",
+      "2MNK",
+      "6P"
+    ],
+    "level": 1,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "M=1,K=N=2048 的近似 FLOPs 是多少？",
+        "a": "2×1×2048²=8,388,608，约8.39 MFLOPs。"
+      },
+      {
+        "q": "训练为什么不总是恰好 forward 的3倍？",
+        "a": "需要哪些梯度、attention成本、优化器、重算、稀疏路由与kernel实现都会改变实际工作量和时间。3倍只是典型Linear的矩阵乘法计数。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "roofline",
+    "title": "Roofline：为什么 FLOPs 少也可能慢",
+    "section": "foundations",
+    "summary": "从数据量推导 compute-bound、memory-bound、launch-bound 与 Amdahl 定律。",
+    "prereq": [
+      "gemm-flops"
+    ],
+    "sources": [
+      "nvidia-gpu",
+      "nvidia-matmul",
+      "a6000",
+      "qreplication"
+    ],
+    "tags": [
+      "Roofline",
+      "memory-bound",
+      "compute-bound",
+      "launch-bound"
+    ],
+    "level": 1,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "减少FLOPs一定减少latency吗？",
+        "a": "不一定。引入额外访存、较差并行度或更多启动可能抵消收益。需要固定工作量的端到端测量。"
+      },
+      {
+        "q": "optimizer占20%，它快4倍，整体快多少？",
+        "a": "1/(0.8+0.2/4)=1/0.85≈1.176倍。该估计假设其余成本不变且按串行加和。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "floating-point",
+    "title": "有限精度：FP32、FP16、BF16 与舍入路径",
+    "section": "foundations",
+    "summary": "把正常浮点差异、算法近似和实现错误区分开。",
+    "prereq": [
+      "gemm-flops"
+    ],
+    "sources": [
+      "accuracy",
+      "qadamw",
+      "qkernel"
+    ],
+    "tags": [
+      "BF16",
+      "FP16",
+      "FMA",
+      "数值精度"
+    ],
+    "level": 1,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "FP32通信是否意味着参数梯度全程FP32计算？",
+        "a": "不是。通信dtype只规定传输/归约表示；梯度来源可能已舍入成BF16。"
+      },
+      {
+        "q": "更精确的中间计算一定更符合原参考吗？",
+        "a": "不一定。原参考若在中间写回低精度，消除该舍入可能改变之后的执行结果。"
+      }
+    ],
+    "lab": "labs/04_precision.py"
+  },
+  {
+    "id": "autograd",
+    "title": "Autograd：从链式法则到一次真实训练更新",
+    "section": "foundations",
+    "summary": "解释梯度累加、叶子参数、no_grad、optimizer 与图的生命周期。",
+    "prereq": [
+      "tensor-layout",
+      "floating-point"
+    ],
+    "sources": [
+      "autograd-doc",
+      "qbfsdp",
+      "qtied"
+    ],
+    "tags": [
+      "autograd",
+      "反向传播",
+      "gradient"
+    ],
+    "level": 1,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "eval()会阻止梯度记录吗？",
+        "a": "不会。eval改变模块训练行为，no_grad/inference_mode控制求导记录，两者概念不同。"
+      },
+      {
+        "q": "两次microbatch的loss.backward后step，会自动平均吗？",
+        "a": "不会。grad默认累加；需要根据loss reduction与有效样本/token权重进行正确缩放。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "tokens-loss",
+    "title": "从文本到 loss：Tokenizer、Embedding、LM Head",
+    "section": "model",
+    "summary": "跟踪 token ID、hidden states、logits、概率与交叉熵的形状。",
+    "prereq": [
+      "gemm-flops",
+      "autograd"
+    ],
+    "sources": [
+      "qconfig",
+      "qwen",
+      "crossentropy"
+    ],
+    "tags": [
+      "token",
+      "embedding",
+      "logits",
+      "cross entropy"
+    ],
+    "level": 1,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "logits与概率的区别是什么？",
+        "a": "logits是未归一化分数；softmax后才是总和为1的分布。"
+      },
+      {
+        "q": "Embedding参数多，是否代表每个token读取全部Embedding？",
+        "a": "输入lookup只读对应行；输出LM Head投影则可能访问整个词表权重，二者成本很不同。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "transformer",
+    "title": "把一个 Qwen3 Decoder Block 连起来",
+    "section": "model",
+    "summary": "在架构位置上理解 Residual、Pre-Norm、QK-Norm、Attention 与 FFN。",
+    "prereq": [
+      "tokens-loss"
+    ],
+    "sources": [
+      "qwen",
+      "qconfig",
+      "qattention"
+    ],
+    "tags": [
+      "Qwen3",
+      "Transformer",
+      "Residual",
+      "QK-Norm"
+    ],
+    "level": 1,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "为什么O projection后必须回到H维？",
+        "a": "要与该残差分支的输入逐元素相加，输出shape需要兼容。"
+      },
+      {
+        "q": "一个Q head的RMSNorm归约16还是128个数？",
+        "a": "本例沿head dimension D=128归约，不沿16个Q heads归约。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "attention",
+    "title": "Self-Attention：为什么是 QKᵀ / √D",
+    "section": "model",
+    "summary": "从相似度、方差与加权平均推导 attention，并跟踪全部 shape。",
+    "prereq": [
+      "transformer",
+      "roofline"
+    ],
+    "sources": [
+      "transformer-paper",
+      "sdpa",
+      "flash"
+    ],
+    "tags": [
+      "Attention",
+      "softmax",
+      "sqrt D",
+      "causal"
+    ],
+    "level": 1,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "softmax前减同一个常数为何不改结果？",
+        "a": "分子分母都乘以相同的exp(-c)，会约掉。"
+      },
+      {
+        "q": "GQA减少KV heads，是否让每个Q head的score计算消失？",
+        "a": "不会。每个Q仍要与其共享组的K比较；GQA主要减少KV投影、缓存及可复用的数据流。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "rmsnorm",
+    "title": "RMSNorm：归约、精度边界与 backward 推导",
+    "section": "model",
+    "summary": "区分 block norm 与 QK norm，从均方根到一行 Triton 的计算域。",
+    "prereq": [
+      "floating-point",
+      "transformer",
+      "autograd"
+    ],
+    "sources": [
+      "rms-paper",
+      "qkernel",
+      "dfuzz"
+    ],
+    "tags": [
+      "RMSNorm",
+      "QK-Norm",
+      "reduction",
+      "backward"
+    ],
+    "level": 1,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "RMSNorm是否必须减均值？",
+        "a": "不需要；这正是它与LayerNorm的主要公式区别之一。"
+      },
+      {
+        "q": "为什么dX包含整行的sum(a*x)？",
+        "a": "因为一行的所有输入共同决定归一化尺度r；任意x_j的变化都会通过r影响所有输出。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "rope",
+    "title": "RoPE：从二维旋转到相对位置与 split-half",
+    "section": "model",
+    "summary": "推导位置差如何进入点积，再解释 Qwen 的维度配对。",
+    "prereq": [
+      "attention",
+      "rmsnorm"
+    ],
+    "sources": [
+      "rope-paper",
+      "qkernel",
+      "qfsdp"
+    ],
+    "tags": [
+      "RoPE",
+      "位置编码",
+      "split-half",
+      "YaRN"
+    ],
+    "level": 1,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "D=128时d=3的配对索引是多少？",
+        "a": "67；前半维与后半维对应元素配对。"
+      },
+      {
+        "q": "QK norm与RoPE融合是否代表交换计算顺序？",
+        "a": "不是。融合是同一program按原依赖执行；交换涉及learned scale、epsilon和舍入语义，需要另证。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "swiglu",
+    "title": "FFN 与 SwiGLU：为什么有三块权重",
+    "section": "model",
+    "summary": "从逐 token 特征变换走到 SiLU×Up 融合和 GEMM epilogue。",
+    "prereq": [
+      "gemm-flops",
+      "autograd",
+      "transformer"
+    ],
+    "sources": [
+      "qwen",
+      "qtuning",
+      "qsummary"
+    ],
+    "tags": [
+      "SwiGLU",
+      "SiLU",
+      "FFN",
+      "epilogue"
+    ],
+    "level": 1,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "SwiGLU与两个Linear的普通MLP有何区别？",
+        "a": "SwiGLU有两条输入投影分支gate/up，经非线性门控后再做down，共三块主要权重。"
+      },
+      {
+        "q": "只融合SiLU×Up减少了多少GEMM？",
+        "a": "没有减少GEMM次数；它减少activation中间张量和相关启动。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "gqa-mla",
+    "title": "MHA、MQA、GQA 与 MLA：缓存什么，省在哪里",
+    "section": "model",
+    "summary": "从 head 共享推导 KV 容量，区分 Qwen 与 DeepSeek 的架构。",
+    "prereq": [
+      "attention",
+      "rope"
+    ],
+    "sources": [
+      "gqa-paper",
+      "qconfig",
+      "sdpa",
+      "deepseek",
+      "qfsdp"
+    ],
+    "tags": [
+      "GQA",
+      "MHA",
+      "MQA",
+      "MLA",
+      "KV Cache"
+    ],
+    "level": 1,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "Qwen3-1.7B与8B的GQA组大小一样吗？",
+        "a": "本项目1.7B是16/8=2；所验证8B结构是32/8=4。"
+      },
+      {
+        "q": "DeepSeek-R1-Qwen3衍生权重是否证明用了MLA？",
+        "a": "不证明。应看模型架构与config，所验证checkpoint仍为Qwen3 GQA。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "gpu-execution",
+    "title": "CUDA 执行模型：Thread → Warp → CTA → SM",
+    "section": "gpu",
+    "summary": "从向量加法推导并行索引、同步范围与 occupancy。",
+    "prereq": [
+      "tensor-layout",
+      "roofline"
+    ],
+    "sources": [
+      "cuda-guide",
+      "triton-add",
+      "qtuning"
+    ],
+    "tags": [
+      "CUDA",
+      "SM",
+      "Warp",
+      "CTA",
+      "Occupancy"
+    ],
+    "level": 1,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "block A写完，block B一定能直接读取最终结果吗？",
+        "a": "不能依赖任意block执行顺序。需要明确的跨block同步设计或后续kernel边界。"
+      },
+      {
+        "q": "num_warps=4能证明每个head由128个独立元素线程计算吗？",
+        "a": "不能。它规定warp配置，逻辑tensor到线程/寄存器的映射仍由编译器决定。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "gpu-memory",
+    "title": "GPU Memory：合并访存、共享内存与 bank conflict",
+    "section": "gpu",
+    "summary": "把“访存优化”落实成地址集合、事务与数据复用。",
+    "prereq": [
+      "gpu-execution",
+      "tensor-layout"
+    ],
+    "sources": [
+      "cuda-guide",
+      "nvidia-gpu",
+      "qkernel",
+      "qreplication"
+    ],
+    "tags": [
+      "Coalescing",
+      "bank conflict",
+      "shared memory",
+      "GDDR6"
+    ],
+    "level": 1,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "contiguous Tensor一定意味着kernel合并访存好吗？",
+        "a": "不一定。取决于同一warp同一访存指令实际请求的地址集合。"
+      },
+      {
+        "q": "shared memory加padding为什么可能有帮助？",
+        "a": "改变行stride，使相邻线程按列访问时落到不同bank；但要结合dtype和架构验证。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "gemm-tiling",
+    "title": "GEMM Tiling 与 Tensor Core：从循环到分块",
+    "section": "gpu",
+    "summary": "推导 tile 的复用次数，理解寄存器累积、pipeline 与 epilogue。",
+    "prereq": [
+      "gpu-memory",
+      "gemm-flops",
+      "swiglu"
+    ],
+    "sources": [
+      "triton-matmul",
+      "nvidia-matmul",
+      "qtuning"
+    ],
+    "tags": [
+      "GEMM",
+      "Tensor Core",
+      "tiling",
+      "pipeline"
+    ],
+    "level": 1,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "扩大BM/BN一定更好吗？",
+        "a": "复用可能提高，但寄存器、shared memory、并行度和边界浪费会制约收益。"
+      },
+      {
+        "q": "kernel比cuBLAS×2快，是否代表比所有融合GEMM实现快？",
+        "a": "不代表。必须写清packed GEMM、epilogue、compile等强基线是否参与对照。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "reduction-softmax",
+    "title": "Reduction 与 Online Softmax：怎样分块还保持同一答案",
+    "section": "gpu",
+    "summary": "从树形归约到可合并的 max、denominator、output 三元组。",
+    "prereq": [
+      "attention",
+      "gpu-execution",
+      "floating-point"
+    ],
+    "sources": [
+      "online-softmax",
+      "triton-softmax",
+      "flash"
+    ],
+    "tags": [
+      "Reduction",
+      "Online Softmax",
+      "LSE",
+      "FlashAttention"
+    ],
+    "level": 1,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "两个块softmax输出可以简单取平均吗？",
+        "a": "不能。每块的归一化分母不同，需按对应LSE/指数分母权重合并。"
+      },
+      {
+        "q": "max归约的无效位置为什么一般不能填0？",
+        "a": "有效分数全为负时0会改变最大值；更重要的是无效位置不能贡献分母。"
+      }
+    ],
+    "lab": "labs/02_online_softmax.py"
+  },
+  {
+    "id": "triton-model",
+    "title": "Triton 编程：从向量加法到 program 级张量计算",
+    "section": "gpu",
+    "summary": "解释 program_id、arange、mask、constexpr 与 host wrapper 的职责。",
+    "prereq": [
+      "gpu-execution",
+      "gpu-memory",
+      "reduction-softmax"
+    ],
+    "sources": [
+      "triton-add",
+      "triton-softmax",
+      "qkernel"
+    ],
+    "tags": [
+      "Triton",
+      "constexpr",
+      "mask",
+      "program"
+    ],
+    "level": 1,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "tl.arange有BLOCK个元素，是否表示BLOCK个CUDA线程？",
+        "a": "不是。它是逻辑张量，具体线程/warp映射由编译器决定。"
+      },
+      {
+        "q": "自定义kernel读写cache为什么要声明mutation？",
+        "a": "编译器需要知道依赖和副作用，否则可能重排、消除或复用本不等价的调用。"
+      }
+    ],
+    "lab": "labs/06_triton_add.py"
+  },
+  {
+    "id": "qk-fusion",
+    "title": "源码主线：Q/K RMSNorm + RoPE 融合",
+    "section": "gpu",
+    "summary": "从模型前处理依赖，走到真实 program mapping、cast 与 cache 地址。",
+    "prereq": [
+      "triton-model",
+      "rmsnorm",
+      "rope",
+      "gqa-mla",
+      "tensor-layout"
+    ],
+    "sources": [
+      "qkernel",
+      "qattention",
+      "qe2e",
+      "qresume"
+    ],
+    "tags": [
+      "Qwen",
+      "Fusion",
+      "Triton",
+      "源码"
+    ],
+    "level": 3,
+    "kind": "源码与实验",
+    "checks": [
+      {
+        "q": "为什么84次launch可以从结构推出来？",
+        "a": "每层4次变1次，28层×3=84。仅指报告中的旧适配路径。"
+      },
+      {
+        "q": "本kernel是否适用于训练？",
+        "a": "该HF兼容入口是inference-only。训练需要正确backward及全量梯度验证，不能直接将forward替换成功当作训练支持。"
+      },
+      {
+        "q": "普通输出和直接写K cache的layout一样吗？",
+        "a": "普通Q/K输出是BHSD；直接写cache为BSHD/容量布局，写入地址依据position和capacity重算。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "flashattention",
+    "title": "FlashAttention 与 Split-KV：IO与并行度是两件事",
+    "section": "gpu",
+    "summary": "用Online Softmax连接精确attention、recomputation和decode分段。",
+    "prereq": [
+      "reduction-softmax",
+      "gqa-mla",
+      "gpu-memory"
+    ],
+    "sources": [
+      "flash",
+      "flash2",
+      "triton-attention",
+      "qtuning"
+    ],
+    "tags": [
+      "FlashAttention",
+      "Split-KV",
+      "Online Softmax",
+      "IO-aware"
+    ],
+    "level": 2,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "FlashAttention为什么可以多做重算还更快？",
+        "a": "额外算术可能换来更少的全局内存读写，实际瓶颈是IO而不是所有FLOPs。"
+      },
+      {
+        "q": "Split-KV的partial输出如何合并？",
+        "a": "按各段LSE对应的分母权重加权归一化，不能简单平均。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "profiling",
+    "title": "Profiling与Benchmark：让性能结论可追问",
+    "section": "gpu",
+    "summary": "建立计时边界、消融、重复顺序与源码指纹。",
+    "prereq": [
+      "roofline",
+      "floating-point",
+      "gpu-execution"
+    ],
+    "sources": [
+      "cuda-semantics",
+      "profiler",
+      "nsys",
+      "ncu",
+      "qconvergence",
+      "qfsdp"
+    ],
+    "tags": [
+      "Benchmark",
+      "Profiler",
+      "latency",
+      "MFU"
+    ],
+    "level": 1,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "kernel时间和比wall小，差额是否全是launch overhead？",
+        "a": "不能直接断言。还包含同步、CPU计算、缓存维护等，也可能有重叠。需timeline与受控消融。"
+      },
+      {
+        "q": "怎么报告JIT开销？",
+        "a": "单列首次构建、编译和warmup；稳态报告不得伪装成冷启动总作业收益。"
+      }
+    ],
+    "lab": "labs/05_cuda_benchmark.py"
+  },
+  {
+    "id": "prefill-decode",
+    "title": "Prefill与Decode：同一组权重，两种性能形态",
+    "section": "inference",
+    "summary": "把矩阵形状、cache长度、TTFT和TPOT连接起来。",
+    "prereq": [
+      "roofline",
+      "gqa-mla",
+      "transformer"
+    ],
+    "sources": [
+      "qstatic",
+      "qcompile",
+      "qreadme",
+      "vllm-metrics"
+    ],
+    "tags": [
+      "Prefill",
+      "Decode",
+      "TTFT",
+      "TPOT"
+    ],
+    "level": 1,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "prefill加速20%是否保证完整16步生成快20%？",
+        "a": "不保证。prefill在总时间占比可能很小，decode仍决定主要成本。"
+      },
+      {
+        "q": "为什么不能把固定cache replay16次当连续生成？",
+        "a": "实际生成会更新token、position与cache有效长度，执行状态和工作量发生变化。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "cuda-graph",
+    "title": "Static KV Cache与CUDA Graph：稳定地址，不是固定内容",
+    "section": "inference",
+    "summary": "从图捕获的指针契约推导预分配、位置更新与重放。",
+    "prereq": [
+      "prefill-decode",
+      "tensor-layout",
+      "gpu-execution",
+      "qk-fusion"
+    ],
+    "sources": [
+      "cuda-semantics",
+      "qstatic",
+      "qrunner",
+      "qkernel"
+    ],
+    "tags": [
+      "CUDA Graph",
+      "Static KV Cache",
+      "Graph replay"
+    ],
+    "level": 2,
+    "kind": "源码与实验",
+    "checks": [
+      {
+        "q": "地址固定意味着输入token不能变吗？",
+        "a": "不意味着。把新内容copy进固定buffer即可；需要同时正确更新position和有效长度。"
+      },
+      {
+        "q": "为什么Graph输出要注意clone？",
+        "a": "输出storage可能在下一次replay复用。保存Tensor引用不一定保存当时的数值快照。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "serving",
+    "title": "Paged KV、Continuous Batching、Prefix Cache与Chunked Prefill",
+    "section": "inference",
+    "summary": "用一个请求的生命周期理解推理引擎，而不是把四个名词并排背。",
+    "prereq": [
+      "prefill-decode",
+      "cuda-graph"
+    ],
+    "sources": [
+      "paged",
+      "vllm-prefix",
+      "vllm-chunk"
+    ],
+    "tags": [
+      "PagedAttention",
+      "Continuous Batching",
+      "Prefix Cache",
+      "Chunked Prefill"
+    ],
+    "level": 1,
+    "kind": "扩展知识",
+    "checks": [
+      {
+        "q": "Paged KV消除了Attention的所有访存吗？",
+        "a": "没有。它改善内存管理与共享，attention仍需访问参与计算的KV。"
+      },
+      {
+        "q": "相同自然语言前缀就一定能复用KV吗？",
+        "a": "不一定。tokenization、模型权重、位置、adapter等都需匹配缓存契约。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "quantization",
+    "title": "量化：W8A16为什么不是免费的显存减半",
+    "section": "inference",
+    "summary": "从scale、zero point到weight-only解码，解释速度与质量边界。",
+    "prereq": [
+      "floating-point",
+      "roofline",
+      "prefill-decode"
+    ],
+    "sources": [
+      "quant-paper",
+      "qcompile",
+      "qrefinements",
+      "deepseek"
+    ],
+    "tags": [
+      "W8A16",
+      "量化",
+      "FP8",
+      "scale"
+    ],
+    "level": 1,
+    "kind": "扩展与项目边界",
+    "checks": [
+      {
+        "q": "G=64、FP32 scale，W8每参数理想字节是多少？",
+        "a": "1+4/64=1.0625字节，未计zero point、padding或保留原权重。"
+      },
+      {
+        "q": "低比特更省权重带宽为何可能更慢？",
+        "a": "反量化、访存模式、scale处理和计算内核效率可能抵消带宽收益。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "speculative-pd",
+    "title": "投机解码与P/D解耦：用额外工作缩短关键路径",
+    "section": "inference",
+    "summary": "从精确采样校正推导接受规则，再解释资源解耦的代价。",
+    "prereq": [
+      "tokens-loss",
+      "serving",
+      "quantization"
+    ],
+    "sources": [
+      "speculative",
+      "vllm-pd"
+    ],
+    "tags": [
+      "Speculative Decoding",
+      "P/D disaggregation",
+      "sampling"
+    ],
+    "level": 1,
+    "kind": "扩展知识",
+    "checks": [
+      {
+        "q": "投机解码为什么可能增加FLOPs却降低latency？",
+        "a": "增加便宜draft与批量verification，减少大模型串行执行轮数；关键是接受率和并行效率。"
+      },
+      {
+        "q": "接受率接近1是否足够证明快？",
+        "a": "不够。draft、verification、KV更新与调度成本也必须计入。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "adamw",
+    "title": "AdamW：从梯度更新推导优化器状态与数值路径",
+    "section": "training",
+    "summary": "先讲动量与bias correction，再读你的Triton更新kernel。",
+    "prereq": [
+      "autograd",
+      "floating-point",
+      "profiling"
+    ],
+    "sources": [
+      "adam",
+      "adamw-paper",
+      "qadamw",
+      "qconvergence"
+    ],
+    "tags": [
+      "AdamW",
+      "optimizer",
+      "master weights",
+      "舍入"
+    ],
+    "level": 2,
+    "kind": "原理与项目",
+    "checks": [
+      {
+        "q": "为什么有bias correction？",
+        "a": "初始moment为0导致早期指数平均向0偏移；除以1−beta^t纠正这个初始化效应。"
+      },
+      {
+        "q": "比native fused optimizer快能归因于“首次融合”吗？",
+        "a": "不能。基线已融合，必须具体分析不同代码路径、数值政策与资源行为，不能用通用fusion口号代替归因。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "tied-grad",
+    "title": "共享 Embedding/Head：梯度合并与 Tensor 生命周期",
+    "section": "training",
+    "summary": "从两条反向路径推导dense与行级贡献，并解读consume_proxy。",
+    "prereq": [
+      "tokens-loss",
+      "autograd",
+      "floating-point"
+    ],
+    "sources": [
+      "qtied",
+      "qreplication"
+    ],
+    "tags": [
+      "Tied Embedding",
+      "autograd",
+      "memory lifetime"
+    ],
+    "level": 3,
+    "kind": "源码与实验",
+    "checks": [
+      {
+        "q": "输入重复token的梯度能覆盖写吗？",
+        "a": "不能。相同权重行需要累加所有位置的贡献，再与head分支相加。"
+      },
+      {
+        "q": "consume_proxy减少allocated是否证明没有dense clone？",
+        "a": "不证明。源码仍clone dense输出；生命周期与分配重用是另一层问题。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "mixed-precision",
+    "title": "混合精度：compute、accumulation、storage与master不是一回事",
+    "section": "training",
+    "summary": "解释loss scaling、BF16更新消失和跨实验不可混用的原因。",
+    "prereq": [
+      "adamw",
+      "floating-point"
+    ],
+    "sources": [
+      "amp",
+      "accuracy",
+      "qadamw",
+      "qbfsdp",
+      "dfuzz"
+    ],
+    "tags": [
+      "AMP",
+      "Loss Scaling",
+      "BF16",
+      "FP32 master"
+    ],
+    "level": 1,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "低精度梯度cast到FP32能恢复精度吗？",
+        "a": "不能恢复已经丢失的位，但能让之后的累积使用更高精度。"
+      },
+      {
+        "q": "为什么master权重不是免费优化？",
+        "a": "它提高更新状态精度，同时增加持久存储和转换成本，需要用相同数值政策建立baseline。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "accum-recompute",
+    "title": "梯度累积与激活重算：用什么换显存",
+    "section": "training",
+    "summary": "推导有效batch、loss权重以及recomputation必须恢复的状态。",
+    "prereq": [
+      "autograd",
+      "mixed-precision",
+      "roofline"
+    ],
+    "sources": [
+      "checkpoint-doc",
+      "qreadme",
+      "qbfsdp"
+    ],
+    "tags": [
+      "Gradient Accumulation",
+      "Checkpointing",
+      "Recomputation"
+    ],
+    "level": 1,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "Dp=4，Bμ=2，A=8，有效batch是多少？",
+        "a": "64个等权样本；TP组大小不另乘。变长token训练还要检查有效token权重。"
+      },
+      {
+        "q": "重算开dropout为什么要关心RNG？",
+        "a": "不同mask会使重算路径不同，梯度可能不再对应原forward。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "collectives",
+    "title": "集合通信与Ring All-Reduce：把每一份数据数清楚",
+    "section": "training",
+    "summary": "用小数组理解All-Gather、Reduce-Scatter和平均梯度，再推导通信量。",
+    "prereq": [
+      "autograd",
+      "accum-recompute"
+    ],
+    "sources": [
+      "nccl",
+      "megatron",
+      "qbfsdp"
+    ],
+    "tags": [
+      "NCCL",
+      "All-Reduce",
+      "All-Gather",
+      "Reduce-Scatter",
+      "Ring"
+    ],
+    "level": 1,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "N=4,S=1GiB，单卡ring总发送多少？",
+        "a": "2×3/4×1=1.5GiB；接收也是1.5GiB；全网发送6GiB。"
+      },
+      {
+        "q": "All-Gather是否把梯度求和？",
+        "a": "不，它聚合/拼接分片。数值归约发生在Reduce/All-Reduce/Reduce-Scatter中。"
+      }
+    ],
+    "lab": "labs/03_sharding.py"
+  },
+  {
+    "id": "fsdp-zero",
+    "title": "DDP、ZeRO、FSDP：为什么多卡不自动解决显存不足",
+    "section": "training",
+    "summary": "从训练状态账本推导分片，而不是先背并行缩写。",
+    "prereq": [
+      "adamw",
+      "mixed-precision",
+      "collectives",
+      "accum-recompute"
+    ],
+    "sources": [
+      "fsdp-doc",
+      "fsdp2",
+      "zero-paper",
+      "qbfsdp"
+    ],
+    "tags": [
+      "FSDP",
+      "ZeRO",
+      "DDP",
+      "显存"
+    ],
+    "level": 1,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "FSDP是否减少同一样本所需的模型数学FLOPs？",
+        "a": "通常不直接减少；它主要改变状态存储与通信，重算还可能增加FLOPs。"
+      },
+      {
+        "q": "为什么持久状态除以卡数不是峰值显存预测？",
+        "a": "临时完整单元、activation、gradient与通信buffer可同时存在，还存在allocator预留和overlap。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "block-fsdp",
+    "title": "源码主线：BlockFSDP的一次 forward/backward",
+    "section": "training",
+    "summary": "跟踪FP32 shard、BF16参数聚合、重算、FP32通信和本地更新。",
+    "prereq": [
+      "fsdp-zero",
+      "collectives",
+      "autograd",
+      "mixed-precision"
+    ],
+    "sources": [
+      "qbfsdp",
+      "qfsdp",
+      "qdeploy",
+      "qckpt"
+    ],
+    "tags": [
+      "BlockFSDP",
+      "functional_call",
+      "FSDP",
+      "8B"
+    ],
+    "level": 3,
+    "kind": "源码与实验",
+    "checks": [
+      {
+        "q": "为什么输入梯度不也除world size？",
+        "a": "它用于本rank继续反向传播，保持本地loss语义；跨rank平均的是共享模型参数梯度。"
+      },
+      {
+        "q": "forward为什么将模板放meta？",
+        "a": "保留模块结构而避免GPU常驻完整参数，执行时由functional_call提供临时聚合权重。"
+      },
+      {
+        "q": "为什么两次使用同一权重要共享master shard？",
+        "a": "否则会产生两个独立参数/optimizer状态，破坏weight tying与一次更新的语义。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "megatron-tp",
+    "title": "Megatron TP 与 Sequence Parallel：通信从矩阵求导中来",
+    "section": "training",
+    "summary": "从列切分、行切分推导前后向collective，区别于DFuzz中的Megatron工作。",
+    "prereq": [
+      "gemm-flops",
+      "collectives",
+      "swiglu"
+    ],
+    "sources": [
+      "megatron",
+      "megatron-doc",
+      "sequence-paper"
+    ],
+    "tags": [
+      "TP",
+      "Megatron",
+      "SP",
+      "张量并行"
+    ],
+    "level": 1,
+    "kind": "扩展知识",
+    "checks": [
+      {
+        "q": "Row Parallel的局部输出是输出分片还是partial sum？",
+        "a": "是相同完整输出shape的partial contribution，需要跨rank求和。"
+      },
+      {
+        "q": "Column Parallel的dX为什么需要归约？",
+        "a": "每个权重列分片都对原输入X产生一部分梯度贡献，完整梯度是它们的和。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "pp-cp-moe",
+    "title": "PP、Context Parallel 与 MoE：拆分轴决定通信",
+    "section": "training",
+    "summary": "理解流水线气泡、长序列依赖和专家路由，而非混称“多卡并行”。",
+    "prereq": [
+      "megatron-tp",
+      "accum-recompute",
+      "collectives"
+    ],
+    "sources": [
+      "pipeline-paper",
+      "megatron-doc",
+      "deepseek",
+      "qwen"
+    ],
+    "tags": [
+      "PP",
+      "Context Parallel",
+      "MoE",
+      "Expert Parallel"
+    ],
+    "level": 1,
+    "kind": "扩展知识",
+    "checks": [
+      {
+        "q": "Expert Parallel通常为什么需要All-to-All？",
+        "a": "不同token被路由到不同rank上的专家，通信不是对相同位置求和。"
+      },
+      {
+        "q": "MoE总参数更多是否必然每token FLOPs更多？",
+        "a": "不必然。需看活跃专家数量与共享部分，但总存储和调度成本仍可能更大。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "checkpoints",
+    "title": "Checkpoint、HF导出与恢复：保存权重不等于保存训练",
+    "section": "training",
+    "summary": "从下一次update需要什么，推导完整恢复契约和分片一致性。",
+    "prereq": [
+      "adamw",
+      "block-fsdp"
+    ],
+    "sources": [
+      "qckpt",
+      "qfsdp",
+      "qconvergence",
+      "distributed-checkpoint"
+    ],
+    "tags": [
+      "Checkpoint",
+      "恢复",
+      "HF export",
+      "I/O"
+    ],
+    "level": 1,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "HF导出后logits一样是否证明optimizer恢复正确？",
+        "a": "不是。HF权重文件没有自动包含master、m/v和训练游标等。"
+      },
+      {
+        "q": "为什么必须测试失败路径？",
+        "a": "错误world size、部分文件或不匹配协议若被静默接受，会产生比显式报错更难定位的训练错误。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "dynamo",
+    "title": "torch.compile与Dynamo：图、guards和graph break",
+    "section": "compiler",
+    "summary": "先理解Python捕获边界，再区分重新编译、断图与外部kernel。",
+    "prereq": [
+      "autograd",
+      "tensor-layout",
+      "profiling"
+    ],
+    "sources": [
+      "compiler",
+      "dynamo-doc",
+      "compile-faq",
+      "qcompile"
+    ],
+    "tags": [
+      "Dynamo",
+      "torch.compile",
+      "guards",
+      "graph break"
+    ],
+    "level": 1,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "guard失效与graph break是一回事吗？",
+        "a": "不是。前者是缓存图复用假设失败，后者是捕获区域被打断。"
+      },
+      {
+        "q": "fullgraph=True是否等于一个CUDA kernel？",
+        "a": "不等于。一个捕获图可以lower成许多generated/extern kernels。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "aotautograd",
+    "title": "AOTAutograd：joint graph、functionalization与saved tensors",
+    "section": "compiler",
+    "summary": "从反向依赖解释图切分，并分清AOTAutograd与Compiled Autograd。",
+    "prereq": [
+      "dynamo",
+      "autograd",
+      "accum-recompute"
+    ],
+    "sources": [
+      "aot-doc",
+      "compiled-autograd",
+      "compile-faq",
+      "bug-bwd"
+    ],
+    "tags": [
+      "AOTAutograd",
+      "functionalization",
+      "FakeTensor",
+      "Compiled Autograd"
+    ],
+    "level": 2,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "aot_eager正确能否证明FakeTensor metadata一定正确？",
+        "a": "不能。eager kernel可能重新物化正确layout，而Inductor会使用metadata作编译推断。"
+      },
+      {
+        "q": "compiled backward与Compiled Autograd完全同义吗？",
+        "a": "不是。后者是PyTorch特定的运行时autograd图捕获机制，普通AOT路径也能编译backward。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "inductor",
+    "title": "Inductor IR、Fusion与Scheduling：从算子到循环和缓冲区",
+    "section": "compiler",
+    "summary": "解释lowering与extern选择，并区分graph调度和kernel内部映射。",
+    "prereq": [
+      "aotautograd",
+      "gemm-tiling",
+      "qk-fusion"
+    ],
+    "sources": [
+      "inductor-doc",
+      "compiler",
+      "deepop"
+    ],
+    "tags": [
+      "Inductor",
+      "IR",
+      "Fusion",
+      "Scheduling",
+      "extern"
+    ],
+    "level": 2,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "图里有sum就证明测到特定reduction schedule吗？",
+        "a": "没有。shape、dtype、layout、硬件和编译选项可能选择不同kernel family。"
+      },
+      {
+        "q": "调用cuBLAS是不是compile失效？",
+        "a": "不一定。编译图内部可以合法dispatch到外部库。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "triton-codegen",
+    "title": "Codegen、MLIR与PTX：生成的代码如何到达GPU",
+    "section": "compiler",
+    "summary": "讲清IR、pass、operation、TTIR、PTX与机器码的层次。",
+    "prereq": [
+      "inductor",
+      "triton-model",
+      "tensor-layout"
+    ],
+    "sources": [
+      "triton-ir",
+      "mlir",
+      "bug-pool",
+      "deepop"
+    ],
+    "tags": [
+      "MLIR",
+      "PTX",
+      "codegen",
+      "Pass",
+      "TTIR"
+    ],
+    "level": 2,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "PTX就是最终GPU机器码吗？",
+        "a": "不是。它是NVIDIA虚拟指令集层的表示，还会生成针对目标架构的设备二进制。"
+      },
+      {
+        "q": "generated Triton错是否一定是Triton compiler bug？",
+        "a": "不是。上游Inductor可能生成了本来就错误的索引或语义。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "custom-ops",
+    "title": "自定义Kernel接入compile：mutation、fake与alias契约",
+    "section": "compiler",
+    "summary": "解释为什么“能单独运行”不等于“编译图内可以安全优化”。",
+    "prereq": [
+      "dynamo",
+      "aotautograd",
+      "triton-model"
+    ],
+    "sources": [
+      "custom-op-doc",
+      "qcompileops",
+      "qcompile"
+    ],
+    "tags": [
+      "custom op",
+      "mutation",
+      "FakeTensor",
+      "alias"
+    ],
+    "level": 3,
+    "kind": "源码与原理",
+    "checks": [
+      {
+        "q": "只返回Q、不返回cache，为什么仍要声明mutation？",
+        "a": "因为后续计算读取被修改的cache，副作用是计算依赖的一部分。"
+      },
+      {
+        "q": "fullgraph通过是否证明自定义op能与邻接算子融合？",
+        "a": "不证明。它可能是图内的opaque边界，需看实际generated artifact和性能。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "compiler-debug",
+    "title": "Compiler Debugging：从mismatch到最小证据链",
+    "section": "compiler",
+    "summary": "把backend二分、artifact检查、控制实验和去重组织成一条流程。",
+    "prereq": [
+      "triton-codegen",
+      "floating-point",
+      "custom-ops"
+    ],
+    "sources": [
+      "compile-faq",
+      "troubleshooting",
+      "bug-pool",
+      "bug-bwd"
+    ],
+    "tags": [
+      "minimization",
+      "debugging",
+      "differential",
+      "codegen"
+    ],
+    "level": 2,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "FP64不复现就能认定BF16差异正常吗？",
+        "a": "不能。dtype改变可能切换编译路径，需检查是否同一artifact及合理误差模型。"
+      },
+      {
+        "q": "多个输入失败是否等于多个bug？",
+        "a": "不等于。要按root cause去重，程序数量和错误机制数量不同。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "oracles",
+    "title": "差分测试与Tolerance：检测异常不等于证明根因",
+    "section": "reliability",
+    "summary": "用oracle层次、数值契约、重复控制和负结果建立可靠判定。",
+    "prereq": [
+      "floating-point",
+      "compiler-debug"
+    ],
+    "sources": [
+      "accuracy",
+      "dfuzz",
+      "deepop",
+      "qsummary"
+    ],
+    "tags": [
+      "Oracle",
+      "Tolerance",
+      "Metamorphic",
+      "数值可靠性"
+    ],
+    "level": 1,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "relative L2小是否证明每个元素误差小？",
+        "a": "不证明。全局范数可能掩盖少数元素或某个参数的严重异常。"
+      },
+      {
+        "q": "给输入加噪声后误差不稳定，能直接判定不是bug吗？",
+        "a": "不能。它是诊断线索，仍需考虑数值条件、实现分支和artifact变化。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "dfuzz-config",
+    "title": "DFuzz第一阶段：为什么搜索训练配置，而不是只测算子",
+    "section": "reliability",
+    "summary": "把训练轨迹、fitness、kernel dispatch与遗传算法连接起来。",
+    "prereq": [
+      "adamw",
+      "oracles",
+      "profiling"
+    ],
+    "sources": [
+      "dfuzz"
+    ],
+    "tags": [
+      "DFuzz",
+      "Genetic Algorithm",
+      "Configuration Fuzzing",
+      "Megatron"
+    ],
+    "level": 3,
+    "kind": "论文解读",
+    "checks": [
+      {
+        "q": "DFuzz的fitness只看算子单次输出差吗？",
+        "a": "不是。主要项是多步训练loss轨迹最大差；Megatron还可有kernel dispatch辅助项。"
+      },
+      {
+        "q": "GA没找到超阈值能否证明优化安全？",
+        "a": "不能。启发式搜索不完备，仅说明给定预算和输入域中未发现。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "dfuzz-input",
+    "title": "DFuzz第二阶段：在Embedding空间搜索，再投影回Token",
+    "section": "reliability",
+    "summary": "解释为什么不能对整数token直接求导，以及两侧checkpoint的含义。",
+    "prereq": [
+      "dfuzz-config",
+      "tokens-loss",
+      "autograd"
+    ],
+    "sources": [
+      "dfuzz"
+    ],
+    "tags": [
+      "Projected Gradient Ascent",
+      "Embedding",
+      "Input Fuzzing"
+    ],
+    "level": 3,
+    "kind": "论文解读",
+    "checks": [
+      {
+        "q": "projection具体投影到哪里？",
+        "a": "投影回词表中合法token对应的embedding，论文使用最近邻查找。"
+      },
+      {
+        "q": "8.79倍是与Stage1相比吗？",
+        "a": "不是。它是Liger RMSNorm的Stage2投影梯度搜索与Stage2随机token mutation比较。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "dfuzz-megatron",
+    "title": "DFuzz的Megatron案例：近似公式、cast与运算顺序",
+    "section": "reliability",
+    "summary": "把bias_gelu、bias_dropout、cross_entropy的风险分成不同机制。",
+    "prereq": [
+      "dfuzz-input",
+      "floating-point",
+      "tokens-loss"
+    ],
+    "sources": [
+      "dfuzz"
+    ],
+    "tags": [
+      "Megatron",
+      "bias_gelu",
+      "CrossEntropy",
+      "DFuzz"
+    ],
+    "level": 3,
+    "kind": "论文案例",
+    "checks": [
+      {
+        "q": "为什么GeLU案例不能只称浮点非结合律？",
+        "a": "两条路径采用不同数学近似函数，根因层次不同；对齐变体的控制实验才支持归因。"
+      },
+      {
+        "q": "相同seed是否保证fused/unfused dropout mask相同？",
+        "a": "不一定。不同执行路径可能消耗不同RNG序列，需要检查实现与实际随机状态。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "deepop-method",
+    "title": "DeepOpFuzz：Operation Target → Artifact → Oracle",
+    "section": "reliability",
+    "summary": "从reachability与observability组织测试，并解释目标未命中也要验证。",
+    "prereq": [
+      "inductor",
+      "triton-codegen",
+      "oracles"
+    ],
+    "sources": [
+      "deepop",
+      "artifact-repro"
+    ],
+    "tags": [
+      "DeepOpFuzz",
+      "operation target",
+      "artifact",
+      "reachability"
+    ],
+    "level": 3,
+    "kind": "论文解读",
+    "checks": [
+      {
+        "q": "没命中目标是否跳过oracle？",
+        "a": "不跳过。论文明确oracles独立于target命中派发，非目标路径也可能暴露bug。"
+      },
+      {
+        "q": "kernel fingerprint数可直接叫编译器coverage吗？",
+        "a": "不能。它是生成产物的诊断信号，不能保证对应独立语义路径或完整代码覆盖。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "pool-bug",
+    "title": "案例复盘：3185与3200，怎样定位错误的Batch Stride",
+    "section": "reliability",
+    "summary": "从每个batch的内存范围推导症状，并说明隔离补丁能证明什么。",
+    "prereq": [
+      "tensor-layout",
+      "compiler-debug",
+      "deepop-method"
+    ],
+    "sources": [
+      "bug-pool",
+      "deepop"
+    ],
+    "tags": [
+      "stride bug",
+      "Inductor",
+      "Triton",
+      "minimized repro"
+    ],
+    "level": 3,
+    "kind": "源码与论文案例",
+    "checks": [
+      {
+        "q": "为什么batch0正确是有价值的诊断线索？",
+        "a": "outer stride乘以batch index；index为0时错误值被消掉，而后续batch发生系统性偏移。"
+      },
+      {
+        "q": "为什么r的mask正确还可能越界？",
+        "a": "mask只约束行内索引，不约束已经算错的base地址。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "backward-bug",
+    "title": "案例复盘：Forward正确，为什么x.grad全零",
+    "section": "reliability",
+    "summary": "解析slice_scatter梯度与stride-0 metadata，避免只凭数值比较猜层次。",
+    "prereq": [
+      "aotautograd",
+      "tensor-layout",
+      "deepop-method"
+    ],
+    "sources": [
+      "bug-bwd",
+      "deepop"
+    ],
+    "tags": [
+      "gradient bug",
+      "slice_scatter",
+      "stride 0",
+      "AOTAutograd"
+    ],
+    "level": 3,
+    "kind": "源码与论文案例",
+    "checks": [
+      {
+        "q": "为什么不能仅凭forward一致判定训练编译正确？",
+        "a": "反向图包含不同操作、metadata和kernel，可能独立出现错误。"
+      },
+      {
+        "q": "functional输出一定要contiguous吗？",
+        "a": "不一定。必须正确表达独立逻辑元素的值与alias语义，而非强制某一种布局。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "engineering",
+    "title": "工程底座：环境、数据、I/O与分布式故障排查",
+    "section": "foundations",
+    "summary": "把可复现运行放在调优之前，解释进程、版本、数据管道与故障边界。",
+    "prereq": [
+      "orientation",
+      "profiling",
+      "collectives"
+    ],
+    "sources": [
+      "nccl",
+      "cuda-semantics",
+      "qreadme",
+      "qfsdp"
+    ],
+    "tags": [
+      "Linux",
+      "DataLoader",
+      "I/O",
+      "NCCL debug",
+      "复现"
+    ],
+    "level": 1,
+    "kind": "原理与推导",
+    "checks": [
+      {
+        "q": "容器能否保证所有数值与性能条件一致？",
+        "a": "不能。宿主driver、GPU、时钟、共享负载、数据和文件系统等仍有影响。"
+      },
+      {
+        "q": "多卡中NCCL超时是否总是网络错误？",
+        "a": "不一定，某rank先OOM/退出或collective顺序不一致也会让其它rank等待。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "project-qwen",
+    "title": "项目档案 · Qwen3-Triton：三条工作流，一套证据规则",
+    "section": "projects",
+    "summary": "推理、训练与分片分别解释目标、源码、测量范围和未证明的结论。",
+    "prereq": [
+      "qk-fusion",
+      "cuda-graph",
+      "adamw",
+      "tied-grad",
+      "block-fsdp",
+      "profiling"
+    ],
+    "sources": [
+      "qsummary",
+      "qresume",
+      "qe2e",
+      "qstatic",
+      "qcompile",
+      "qconvergence",
+      "qreplication",
+      "qfsdp",
+      "qdeploy"
+    ],
+    "tags": [
+      "项目",
+      "Qwen3",
+      "证据",
+      "性能"
+    ],
+    "level": 3,
+    "kind": "项目证据档案",
+    "checks": [
+      {
+        "q": "Qwen项目最适合的三个成果维度是什么？",
+        "a": "推理latency、单卡训练step/完整作业成本、多卡全分片功能与容量验证。三者分别有baseline和边界。"
+      },
+      {
+        "q": "面试官问2.8倍是否Triton本身贡献，怎样答？",
+        "a": "主要来自static decode+CUDA Graph降低调度开销；packing/direct write等是Graph上的增量，不把全部收益归给kernel。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "project-dfuzz",
+    "title": "项目档案 · DFuzz：数值风险、搜索收益与根因证据",
+    "section": "projects",
+    "summary": "用论文页码追溯44/16/12、Megatron 3/9与两阶段收益。",
+    "prereq": [
+      "dfuzz-config",
+      "dfuzz-input",
+      "dfuzz-megatron"
+    ],
+    "sources": [
+      "dfuzz"
+    ],
+    "tags": [
+      "项目",
+      "DFuzz",
+      "Megatron",
+      "论文"
+    ],
+    "level": 3,
+    "kind": "项目证据档案",
+    "checks": [
+      {
+        "q": "44项优化是否均独立实现了一个GPU kernel？",
+        "a": "不是必然。表中有融合、compile和组合开关等测试对象，应该沿论文的operator optimization口径解释。"
+      },
+      {
+        "q": "哪些结论不能从本文直接推出？",
+        "a": "全局最坏误差、所有低于阈值方案安全、每个超阈值都是代码缺陷、最终任务质量必然下降。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "project-deepop",
+    "title": "项目档案 · DeepOpFuzz：三组评测不能混成一个覆盖率",
+    "section": "projects",
+    "summary": "区分新发现86个bug、30根因回放与48历史bug效率实验。",
+    "prereq": [
+      "deepop-method",
+      "pool-bug",
+      "backward-bug"
+    ],
+    "sources": [
+      "deepop",
+      "artifact-repro",
+      "bug-pool",
+      "bug-bwd"
+    ],
+    "tags": [
+      "项目",
+      "DeepOpFuzz",
+      "Benchmark",
+      "bug"
+    ],
+    "level": 3,
+    "kind": "项目证据档案",
+    "checks": [
+      {
+        "q": "13/30和13.0/48能直接当作同一实验指标吗？",
+        "a": "不能。前者为特定发现根因回放，后者为独立历史benchmark多seed均值。"
+      },
+      {
+        "q": "Random触达更多kernel fingerprint，为什么可能发现更少bug？",
+        "a": "fingerprint多样性不等于进入关键条件的深度；也取决于oracle能观察哪些失败。"
+      }
+    ],
+    "lab": null
+  },
+  {
+    "id": "interview",
+    "title": "把知识变成技术论证：项目介绍、追问与学习检验",
+    "section": "projects",
+    "summary": "不背“满分答案”，用可核对的因果链回答。",
+    "prereq": [
+      "project-qwen",
+      "project-dfuzz",
+      "project-deepop"
+    ],
+    "sources": [
+      "qreadme",
+      "dfuzz",
+      "deepop"
+    ],
+    "tags": [
+      "面试",
+      "学习路线",
+      "技术表达"
+    ],
+    "level": 1,
+    "kind": "复盘与检验",
+    "checks": [
+      {
+        "q": "面试官质疑结论，最先补充什么？",
+        "a": "实验对象、baseline、shape/dtype/backend、计时边界、原始样本/复测与数值gate，而不是加更多形容词。"
+      },
+      {
+        "q": "怎样避免“知识点正确但项目故事虚构”？",
+        "a": "把通用原理、真实实现、报告数据与推断分开标注；用技术依赖图而不编造未记录的研发时间线。"
+      }
+    ],
+    "lab": null
+  }
+]

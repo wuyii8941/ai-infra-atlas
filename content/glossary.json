@@ -1,0 +1,368 @@
+[
+  {
+    "term": "Tensor",
+    "zh": "张量",
+    "definition": "有 shape、dtype、device 和 storage 映射的多维数组。",
+    "article": "tensor-layout"
+  },
+  {
+    "term": "Stride",
+    "zh": "步幅",
+    "definition": "逻辑索引增加一格时，底层地址前进的元素数量；不是字节。",
+    "article": "tensor-layout"
+  },
+  {
+    "term": "Alias",
+    "zh": "共享存储",
+    "definition": "多个 tensor 可能引用同一底层 storage；原地修改可能相互影响。",
+    "article": "tensor-layout"
+  },
+  {
+    "term": "Materialization",
+    "zh": "物化",
+    "definition": "真正分配并写出中间结果，而不只是创建一个 view。",
+    "article": "tensor-layout"
+  },
+  {
+    "term": "GEMM",
+    "zh": "矩阵乘法",
+    "definition": "矩阵乘矩阵；约 2MNK FLOPs 来自每个输出的 K 次乘法和 K−1 次加法。",
+    "article": "gemm-flops"
+  },
+  {
+    "term": "FLOPs / FLOP/s",
+    "zh": "工作量 / 运算速率",
+    "definition": "前者数操作，后者衡量单位时间完成多少操作，不能混用。",
+    "article": "gemm-flops"
+  },
+  {
+    "term": "Arithmetic Intensity",
+    "zh": "算术强度",
+    "definition": "计算量与指定内存层流量之比，需要说明计算字节量的口径。",
+    "article": "roofline"
+  },
+  {
+    "term": "Memory-bound",
+    "zh": "带宽受限",
+    "definition": "实际性能受某层内存传输限制；不是“用了很多显存”的同义词。",
+    "article": "roofline"
+  },
+  {
+    "term": "Compute-bound",
+    "zh": "计算受限",
+    "definition": "实际性能主要受计算吞吐限制，取决于硬件、shape 与执行路径。",
+    "article": "roofline"
+  },
+  {
+    "term": "Launch-bound",
+    "zh": "启动开销受限",
+    "definition": "小 kernel 的分发/提交间隙成为关键成本；Graph 与 fusion 可能改善。",
+    "article": "cuda-graph"
+  },
+  {
+    "term": "Amdahl’s Law",
+    "zh": "局部优化上限",
+    "definition": "总加速受未优化部分限制：1/[(1−f)+f/s]。",
+    "article": "roofline"
+  },
+  {
+    "term": "BF16 / FP16",
+    "zh": "两类16位浮点",
+    "definition": "BF16指数范围宽、有效精度粗；FP16尾数更长但指数范围更窄。",
+    "article": "floating-point"
+  },
+  {
+    "term": "FMA",
+    "zh": "融合乘加指令",
+    "definition": "乘加使用一次最终舍入；与“把多个算子融合成一个 kernel”不同。",
+    "article": "floating-point"
+  },
+  {
+    "term": "Token / Embedding",
+    "zh": "离散标记 / 向量表示",
+    "definition": "token 是词表索引，embedding 是可训练的行向量查表。",
+    "article": "tokens-loss"
+  },
+  {
+    "term": "Logits / Cross Entropy",
+    "zh": "分数 / 训练损失",
+    "definition": "logits 未归一化，交叉熵衡量目标 token 的负对数概率。",
+    "article": "tokens-loss"
+  },
+  {
+    "term": "Residual Connection",
+    "zh": "残差连接",
+    "definition": "把子层输出与输入相加，提供一条直接的信息和梯度路径。",
+    "article": "transformer"
+  },
+  {
+    "term": "RMSNorm",
+    "zh": "均方根归一化",
+    "definition": "按向量均方根缩放，再乘可训练权重；QK norm 与 block norm 的归约维度不同。",
+    "article": "rmsnorm"
+  },
+  {
+    "term": "RoPE",
+    "zh": "旋转位置编码",
+    "definition": "在二维子空间按位置旋转 Q/K，使点积包含相对位置信息。",
+    "article": "rope"
+  },
+  {
+    "term": "SwiGLU",
+    "zh": "门控前馈",
+    "definition": "SiLU(gate projection) 与 up projection 逐元素相乘，再执行 down projection。",
+    "article": "swiglu"
+  },
+  {
+    "term": "GQA",
+    "zh": "分组查询注意力",
+    "definition": "多个 Q heads 共享一个 KV head，降低 KV 存储；不等于先显式复制 KV。",
+    "article": "gqa-mla"
+  },
+  {
+    "term": "MLA",
+    "zh": "多头潜在注意力",
+    "definition": "通过低维潜表示等结构压缩 KV；不是给 GQA 换一个名字。",
+    "article": "gqa-mla"
+  },
+  {
+    "term": "SM / Warp / CTA",
+    "zh": "执行资源与工作单元",
+    "definition": "SM执行线程块；NVIDIA warp通常32线程；program的逻辑元素不等于物理线程。",
+    "article": "gpu-execution"
+  },
+  {
+    "term": "Coalescing",
+    "zh": "合并访存",
+    "definition": "一个 warp 的访问地址分布决定所需事务，不是“tensor连续”就一定最优。",
+    "article": "gpu-memory"
+  },
+  {
+    "term": "Occupancy",
+    "zh": "驻留并行度",
+    "definition": "活跃 warps 相对硬件上限的比例，受寄存器、共享内存等约束；不是越高越快。",
+    "article": "gpu-memory"
+  },
+  {
+    "term": "Tiling",
+    "zh": "分块",
+    "definition": "在片上复用输入 tile，改变数据搬运和并行分工而不是数学输出。",
+    "article": "gemm-tiling"
+  },
+  {
+    "term": "Reduction",
+    "zh": "归约",
+    "definition": "把多个值合并为少数统计量，如sum/max；归约树会影响舍入顺序。",
+    "article": "reduction-softmax"
+  },
+  {
+    "term": "Online Softmax",
+    "zh": "分块稳定归一化",
+    "definition": "维护运行max、分母与输出累积量，合并时重缩放而非简单平均。",
+    "article": "reduction-softmax"
+  },
+  {
+    "term": "Triton",
+    "zh": "GPU kernel语言与编译器",
+    "definition": "以块级逻辑向量编程，编译器负责进一步映射线程/warps与生成设备代码。",
+    "article": "triton-model"
+  },
+  {
+    "term": "Kernel Fusion",
+    "zh": "算子融合",
+    "definition": "将兼容计算合入一个kernel以减少中间物化和启动；资源压力可能增加。",
+    "article": "qk-fusion"
+  },
+  {
+    "term": "FlashAttention",
+    "zh": "IO-aware attention",
+    "definition": "分块与在线softmax避免完整score矩阵落到全局显存；不是稀疏近似。",
+    "article": "flashattention"
+  },
+  {
+    "term": "Prefill / Decode",
+    "zh": "输入处理 / 逐token生成",
+    "definition": "前者处理整段prompt，后者利用KV cache处理新token，矩阵形状和瓶颈不同。",
+    "article": "prefill-decode"
+  },
+  {
+    "term": "KV Cache",
+    "zh": "历史键值缓存",
+    "definition": "每层保存历史token的K/V，避免重复投影；容量约2BSLHkvDb。",
+    "article": "gqa-mla"
+  },
+  {
+    "term": "TTFT / ITL / TPOT",
+    "zh": "首token / 间隔 / 平均输出耗时",
+    "definition": "面向请求的服务指标，不能用单kernel延迟替代；定义需与采集端对齐。",
+    "article": "prefill-decode"
+  },
+  {
+    "term": "CUDA Graph",
+    "zh": "GPU工作图重放",
+    "definition": "记录一组GPU操作及依赖，降低重复提交成本；不把所有操作变成一个kernel。",
+    "article": "cuda-graph"
+  },
+  {
+    "term": "Continuous Batching",
+    "zh": "连续批处理",
+    "definition": "在迭代边界动态接纳/移除请求，需调度和KV管理而不只是动态batch维度。",
+    "article": "serving"
+  },
+  {
+    "term": "PagedAttention",
+    "zh": "分页KV管理与访问",
+    "definition": "用块表映射逻辑token位置至固定物理块，降低预分配浪费。",
+    "article": "serving"
+  },
+  {
+    "term": "W8A16",
+    "zh": "8位权重/16位激活",
+    "definition": "降低权重表示开销的近似路径；尺度、反量化与质量校验仍有成本。",
+    "article": "quantization"
+  },
+  {
+    "term": "Speculative Decoding",
+    "zh": "推测解码",
+    "definition": "先草拟多个token，再目标模型验证，分布保持需要正确的接受/拒绝逻辑。",
+    "article": "speculative-pd"
+  },
+  {
+    "term": "AdamW",
+    "zh": "解耦权重衰减优化器",
+    "definition": "维护一阶/二阶动量并做偏差修正，权重衰减与自适应梯度更新解耦。",
+    "article": "adamw"
+  },
+  {
+    "term": "Weight Tying",
+    "zh": "权重共享",
+    "definition": "输入embedding与输出head可使用同一个参数对象，梯度需汇总所有使用路径。",
+    "article": "tied-grad"
+  },
+  {
+    "term": "Master Weights",
+    "zh": "高精度主权重",
+    "definition": "用FP32保留小更新，再转换为计算精度；并非所有BF16训练都自动拥有。",
+    "article": "mixed-precision"
+  },
+  {
+    "term": "Gradient Accumulation",
+    "zh": "梯度累积",
+    "definition": "多个microbatch累积后更新一次，须正确缩放loss并维护有效batch语义。",
+    "article": "accum-recompute"
+  },
+  {
+    "term": "Activation Checkpointing",
+    "zh": "激活重算",
+    "definition": "少存中间激活，在backward重跑部分forward；不同于磁盘恢复checkpoint。",
+    "article": "accum-recompute"
+  },
+  {
+    "term": "All-Gather",
+    "zh": "全收集",
+    "definition": "每个rank得到所有rank的分片，用于临时重建完整参数等。",
+    "article": "collectives"
+  },
+  {
+    "term": "Reduce-Scatter",
+    "zh": "归约后分片",
+    "definition": "跨rank相加相同位置后，每rank只接收自己负责的区间。",
+    "article": "collectives"
+  },
+  {
+    "term": "All-Reduce",
+    "zh": "全归约",
+    "definition": "所有rank得到对应元素规约后的完整结果，可用reduce-scatter与all-gather组织。",
+    "article": "collectives"
+  },
+  {
+    "term": "FSDP / ZeRO-3",
+    "zh": "全分片训练",
+    "definition": "持久分片参数、梯度和优化器状态，按单元临时聚合完整参数。",
+    "article": "fsdp-zero"
+  },
+  {
+    "term": "Tensor Parallel",
+    "zh": "张量并行",
+    "definition": "切分单层矩阵计算，partial output需要相应通信；不等同FSDP。",
+    "article": "megatron-tp"
+  },
+  {
+    "term": "Pipeline / Context Parallel",
+    "zh": "层 / 上下文并行",
+    "definition": "分别切分模型层与注意力上下文；通信依赖不同。",
+    "article": "pp-cp-moe"
+  },
+  {
+    "term": "MoE",
+    "zh": "混合专家",
+    "definition": "按token路由到部分专家，稀疏计算伴随负载均衡和token通信。",
+    "article": "pp-cp-moe"
+  },
+  {
+    "term": "Dynamo / FX",
+    "zh": "捕获与图表示",
+    "definition": "Dynamo捕获可编译计算并建立guards，FX描述节点依赖而非GPU线程安排。",
+    "article": "dynamo"
+  },
+  {
+    "term": "Guard / Graph Break",
+    "zh": "有效性检查 / 捕获边界",
+    "definition": "guard失效可能重编译；graph break通常形成eager片段，二者不是一回事。",
+    "article": "dynamo"
+  },
+  {
+    "term": "AOTAutograd",
+    "zh": "前反向图处理",
+    "definition": "让autograd相关计算进入可编译图，同时处理functionalization和别名语义。",
+    "article": "aotautograd"
+  },
+  {
+    "term": "Inductor",
+    "zh": "PyTorch编译后端",
+    "definition": "lowering到内部计算/缓冲表示，进行fusion、调度与代码生成，也可调用外部库。",
+    "article": "inductor"
+  },
+  {
+    "term": "IR / Lowering",
+    "zh": "中间表示 / 降低",
+    "definition": "从高层算子逐步走向循环、索引、缓冲区和设备实现。",
+    "article": "inductor"
+  },
+  {
+    "term": "Pass / Operation / Artifact",
+    "zh": "编译阶段 / 决策 / 产物",
+    "definition": "执行某pass不等于选中某具体决策；artifact是可观察的生成结果。",
+    "article": "deepop-method"
+  },
+  {
+    "term": "Metamorphic Oracle",
+    "zh": "变形关系判据",
+    "definition": "检查输入变换前后的已知关系，无可信reference时仍可能暴露错误。",
+    "article": "oracles"
+  },
+  {
+    "term": "Numerical Parity",
+    "zh": "数值对齐",
+    "definition": "在约定输入、精度和误差指标下的一致性，不等价全任务无损。",
+    "article": "oracles"
+  },
+  {
+    "term": "DFuzz",
+    "zh": "训练数值差分模糊测试",
+    "definition": "先搜索训练配置，再搜索输入，评价优化ON/OFF的loss轨迹偏差。",
+    "article": "dfuzz-config"
+  },
+  {
+    "term": "DeepOpFuzz",
+    "zh": "编译操作引导测试",
+    "definition": "按具体编译决策及条件生成program，观察artifact，并独立分派错误检查。",
+    "article": "deepop-method"
+  },
+  {
+    "term": "Allocated / Reserved",
+    "zh": "实际分配 / 分配器保留",
+    "definition": "tensor释放不代表CUDA侧立即归还；Graph pool与工作区也影响统计。",
+    "article": "profiling"
+  }
+]

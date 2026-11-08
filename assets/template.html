@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="AI Infra Atlas：从计算基础、Transformer 与 Triton，到推理、FSDP、Inductor 和 Fuzzing。基于 Qwen3-Triton、DFuzz、DeepOpFuzz 的项目驱动教程。">
+<meta name="theme-color" content="#147c68">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>AI Infra Atlas · 从公式到代码，从代码到证据</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%23153b3b'/%3E%3Cpath d='M13 46 31 15l19 31M20 35h23M31 15v31' stroke='%23d4f2df' fill='none' stroke-width='3'/%3E%3C/svg%3E">
+<style>@@CSS@@</style>
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="topbar">
+<button class="icon-btn menu-toggle" id="menu-toggle" aria-label="展开章节目录" aria-expanded="false" aria-controls="sidebar"></button>
+<a class="brand" href="#home" aria-label="AI Infra Atlas 首页">
+<span class="brand-symbol"><svg width="23" height="23" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m5 25 11-20 11 20M10 17h12M16 5v20"/></svg></span>
+<span><span class="brand-title">AI Infra Atlas</span><span class="brand-sub">LEARN · BUILD · VERIFY</span></span></a>
+<nav class="topnav" aria-label="全站导航"><a href="#map" data-route="map">学习地图</a><a href="#projects" data-route="projects">项目档案</a><a href="#lab" data-route="lab">计算实验室</a><a href="#glossary" data-route="glossary">术语索引</a><a href="#sources" data-route="sources">资料与边界</a></nav>
+<div class="toptools"><button id="search-open" class="search-trigger" aria-label="全文搜索（Ctrl 或 Command K）"></button><button class="icon-btn" id="theme-toggle" aria-label="切换深浅主题"></button></div>
+</header>
+<aside class="sidebar" id="sidebar" aria-label="章节目录"></aside>
+<div class="mobile-shade" id="mobile-shade"></div>
+<main class="main" id="main" tabindex="-1"></main>
+<dialog class="search-dialog" id="search-dialog" aria-label="全文搜索">
+ <div class="search-box"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input id="search-input" type="search" autocomplete="off" placeholder="搜索概念、代码、项目或问题…" aria-label="搜索关键词"><button class="icon-btn" id="search-close" aria-label="关闭搜索"></button></div>
+ <div class="search-results" id="search-results"></div>
+ <div class="search-bottom"><span id="search-count"></span><span>↑↓ 选择 · Enter 打开 · Esc 关闭</span></div>
+</dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<noscript><div class="noscript"><h1>AI Infra Atlas</h1><p>该离线网站需要浏览器启用 JavaScript 才能展示目录、搜索和正文。ZIP 中同时提供完整 Markdown 正文，可在任意文本阅读器中打开。</p></div></noscript>
+<script id="atlas-data" type="application/json">@@DATA@@</script>
+<script>@@JS@@</script>
+</body>
+</html>

@@ -1,0 +1,158 @@
+{
+  "sections": [
+    {
+      "id": "start",
+      "number": "00",
+      "title": "导读与路线",
+      "summary": "从自己的三个项目理解 AI Infra。"
+    },
+    {
+      "id": "foundations",
+      "number": "01",
+      "title": "计算与系统基础",
+      "summary": "从地址、乘加和梯度开始。"
+    },
+    {
+      "id": "model",
+      "number": "02",
+      "title": "Transformer 与模型算子",
+      "summary": "理解计算为何存在，再谈如何优化。"
+    },
+    {
+      "id": "gpu",
+      "number": "03",
+      "title": "GPU 与 Triton Kernel",
+      "summary": "把公式变成真实的并行执行。"
+    },
+    {
+      "id": "inference",
+      "number": "04",
+      "title": "LLM 推理与服务",
+      "summary": "区分算子、运行时与服务系统。"
+    },
+    {
+      "id": "training",
+      "number": "05",
+      "title": "训练与分布式系统",
+      "summary": "从状态和显存推导通信与分片。"
+    },
+    {
+      "id": "compiler",
+      "number": "06",
+      "title": "PyTorch 编译器",
+      "summary": "沿 Graph、IR 到生成代码逐层观察。"
+    },
+    {
+      "id": "reliability",
+      "number": "07",
+      "title": "数值可靠性与 Fuzzing",
+      "summary": "测试到什么，能看见什么错误。"
+    },
+    {
+      "id": "projects",
+      "number": "08",
+      "title": "项目档案与面试复盘",
+      "summary": "让每个结果都能沿证据追问。"
+    }
+  ],
+  "paths": [
+    {
+      "id": "foundation",
+      "name": "从零建立全貌",
+      "label": "基础路线",
+      "desc": "先掌握 tensor 与计算量，再把 Attention、GPU 和训练串起来。",
+      "items": [
+        "orientation",
+        "tensor-layout",
+        "gemm-flops",
+        "roofline",
+        "floating-point",
+        "tokens-loss",
+        "transformer",
+        "attention",
+        "autograd",
+        "gpu-execution",
+        "interview"
+      ]
+    },
+    {
+      "id": "kernel",
+      "name": "Kernel / Inference",
+      "label": "性能路线",
+      "desc": "从 Qwen 数据流走向 Triton 实现与端到端归因。",
+      "items": [
+        "gemm-flops",
+        "roofline",
+        "rmsnorm",
+        "rope",
+        "swiglu",
+        "gqa-mla",
+        "gpu-memory",
+        "triton-model",
+        "qk-fusion",
+        "flashattention",
+        "prefill-decode",
+        "cuda-graph",
+        "profiling",
+        "project-qwen"
+      ]
+    },
+    {
+      "id": "training",
+      "name": "Training / Distributed",
+      "label": "训练路线",
+      "desc": "先解释梯度和优化器状态，再理解全分片生命周期。",
+      "items": [
+        "autograd",
+        "adamw",
+        "tied-grad",
+        "mixed-precision",
+        "accum-recompute",
+        "collectives",
+        "fsdp-zero",
+        "block-fsdp",
+        "megatron-tp",
+        "pp-cp-moe",
+        "checkpoints"
+      ]
+    },
+    {
+      "id": "compiler",
+      "name": "Compiler / Reliability",
+      "label": "研究路线",
+      "desc": "把模型语义、编译选择和可观察的错误连接起来。",
+      "items": [
+        "tensor-layout",
+        "floating-point",
+        "dynamo",
+        "aotautograd",
+        "inductor",
+        "triton-codegen",
+        "custom-ops",
+        "compiler-debug",
+        "oracles",
+        "deepop-method",
+        "pool-bug",
+        "backward-bug",
+        "project-deepop"
+      ]
+    },
+    {
+      "id": "dfuzz",
+      "name": "Megatron / DFuzz",
+      "label": "数值路线",
+      "desc": "从浮点与训练动态出发，理解两阶段搜索和真实案例。",
+      "items": [
+        "floating-point",
+        "autograd",
+        "rmsnorm",
+        "adamw",
+        "oracles",
+        "dfuzz-config",
+        "dfuzz-input",
+        "dfuzz-megatron",
+        "project-dfuzz"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,583 @@
+{
+  "qreadme": {
+    "id": "qreadme",
+    "title": "Qwen3-Triton · README.md",
+    "url": "https://github.com/wuyii8941/qwen3-triton/blob/10be3d87ecb4659da7f174293f162145daaf47c9/README.md",
+    "kind": "项目源码 / 报告",
+    "note": "固定到 10be3d87（2026-11-06）。数字来自作者报告或公开清单，本站未重跑 GPU 实验；本地 artifacts 未随仓库公开。"
+  },
+  "qsummary": {
+    "id": "qsummary",
+    "title": "Qwen3-Triton · OPTIMIZATION_SUMMARY.md",
+    "url": "https://github.com/wuyii8941/qwen3-triton/blob/10be3d87ecb4659da7f174293f162145daaf47c9/OPTIMIZATION_SUMMARY.md",
+    "kind": "项目源码 / 报告",
+    "note": "固定到 10be3d87（2026-11-06）。数字来自作者报告或公开清单，本站未重跑 GPU 实验；本地 artifacts 未随仓库公开。"
+  },
+  "qresume": {
+    "id": "qresume",
+    "title": "Qwen3-Triton · RESUME_NOTES.md",
+    "url": "https://github.com/wuyii8941/qwen3-triton/blob/10be3d87ecb4659da7f174293f162145daaf47c9/RESUME_NOTES.md",
+    "kind": "项目源码 / 报告",
+    "note": "固定到 10be3d87（2026-11-06）。数字来自作者报告或公开清单，本站未重跑 GPU 实验；本地 artifacts 未随仓库公开。"
+  },
+  "qkernel": {
+    "id": "qkernel",
+    "title": "Qwen3-Triton · ops/triton/hf_qk_norm_rope.py",
+    "url": "https://github.com/wuyii8941/qwen3-triton/blob/10be3d87ecb4659da7f174293f162145daaf47c9/ops/triton/hf_qk_norm_rope.py",
+    "kind": "项目源码 / 报告",
+    "note": "固定到 10be3d87（2026-11-06）。数字来自作者报告或公开清单，本站未重跑 GPU 实验；本地 artifacts 未随仓库公开。"
+  },
+  "qattention": {
+    "id": "qattention",
+    "title": "Qwen3-Triton · model/hf_attention.py",
+    "url": "https://github.com/wuyii8941/qwen3-triton/blob/10be3d87ecb4659da7f174293f162145daaf47c9/model/hf_attention.py",
+    "kind": "项目源码 / 报告",
+    "note": "固定到 10be3d87（2026-11-06）。数字来自作者报告或公开清单，本站未重跑 GPU 实验；本地 artifacts 未随仓库公开。"
+  },
+  "qe2e": {
+    "id": "qe2e",
+    "title": "Qwen3-Triton · E2E_ATTENTION_OPTIMIZATION.md",
+    "url": "https://github.com/wuyii8941/qwen3-triton/blob/10be3d87ecb4659da7f174293f162145daaf47c9/E2E_ATTENTION_OPTIMIZATION.md",
+    "kind": "项目源码 / 报告",
+    "note": "固定到 10be3d87（2026-11-06）。数字来自作者报告或公开清单，本站未重跑 GPU 实验；本地 artifacts 未随仓库公开。"
+  },
+  "qstatic": {
+    "id": "qstatic",
+    "title": "Qwen3-Triton · STATIC_DECODE_OPTIMIZATION.md",
+    "url": "https://github.com/wuyii8941/qwen3-triton/blob/10be3d87ecb4659da7f174293f162145daaf47c9/STATIC_DECODE_OPTIMIZATION.md",
+    "kind": "项目源码 / 报告",
+    "note": "固定到 10be3d87（2026-11-06）。数字来自作者报告或公开清单，本站未重跑 GPU 实验；本地 artifacts 未随仓库公开。"
+  },
+  "qrunner": {
+    "id": "qrunner",
+    "title": "Qwen3-Triton · model/static_decode.py",
+    "url": "https://github.com/wuyii8941/qwen3-triton/blob/10be3d87ecb4659da7f174293f162145daaf47c9/model/static_decode.py",
+    "kind": "项目源码 / 报告",
+    "note": "固定到 10be3d87（2026-11-06）。数字来自作者报告或公开清单，本站未重跑 GPU 实验；本地 artifacts 未随仓库公开。"
+  },
+  "qcompile": {
+    "id": "qcompile",
+    "title": "Qwen3-Triton · LM_HEAD_COMPILE.md",
+    "url": "https://github.com/wuyii8941/qwen3-triton/blob/10be3d87ecb4659da7f174293f162145daaf47c9/LM_HEAD_COMPILE.md",
+    "kind": "项目源码 / 报告",
+    "note": "固定到 10be3d87（2026-11-06）。数字来自作者报告或公开清单，本站未重跑 GPU 实验；本地 artifacts 未随仓库公开。"
+  },
+  "qcompileops": {
+    "id": "qcompileops",
+    "title": "Qwen3-Triton · ops/compile_ops.py",
+    "url": "https://github.com/wuyii8941/qwen3-triton/blob/10be3d87ecb4659da7f174293f162145daaf47c9/ops/compile_ops.py",
+    "kind": "项目源码 / 报告",
+    "note": "固定到 10be3d87（2026-11-06）。数字来自作者报告或公开清单，本站未重跑 GPU 实验；本地 artifacts 未随仓库公开。"
+  },
+  "qrefinements": {
+    "id": "qrefinements",
+    "title": "Qwen3-Triton · DECODE_REFINEMENTS.md",
+    "url": "https://github.com/wuyii8941/qwen3-triton/blob/10be3d87ecb4659da7f174293f162145daaf47c9/DECODE_REFINEMENTS.md",
+    "kind": "项目源码 / 报告",
+    "note": "固定到 10be3d87（2026-11-06）。数字来自作者报告或公开清单，本站未重跑 GPU 实验；本地 artifacts 未随仓库公开。"
+  },
+  "qtuning": {
+    "id": "qtuning",
+    "title": "Qwen3-Triton · KERNEL_TUNING_RESULTS.md",
+    "url": "https://github.com/wuyii8941/qwen3-triton/blob/10be3d87ecb4659da7f174293f162145daaf47c9/KERNEL_TUNING_RESULTS.md",
+    "kind": "项目源码 / 报告",
+    "note": "固定到 10be3d87（2026-11-06）。数字来自作者报告或公开清单，本站未重跑 GPU 实验；本地 artifacts 未随仓库公开。"
+  },
+  "qadamw": {
+    "id": "qadamw",
+    "title": "Qwen3-Triton · training/triton_adamw.py",
+    "url": "https://github.com/wuyii8941/qwen3-triton/blob/10be3d87ecb4659da7f174293f162145daaf47c9/training/triton_adamw.py",
+    "kind": "项目源码 / 报告",
+    "note": "固定到 10be3d87（2026-11-06）。数字来自作者报告或公开清单，本站未重跑 GPU 实验；本地 artifacts 未随仓库公开。"
+  },
+  "qconvergence": {
+    "id": "qconvergence",
+    "title": "Qwen3-Triton · TRAINING_CONVERGENCE_RESULTS.md",
+    "url": "https://github.com/wuyii8941/qwen3-triton/blob/10be3d87ecb4659da7f174293f162145daaf47c9/TRAINING_CONVERGENCE_RESULTS.md",
+    "kind": "项目源码 / 报告",
+    "note": "固定到 10be3d87（2026-11-06）。数字来自作者报告或公开清单，本站未重跑 GPU 实验；本地 artifacts 未随仓库公开。"
+  },
+  "qreplication": {
+    "id": "qreplication",
+    "title": "Qwen3-Triton · TRAINING_REPLICATION_PLAN.md",
+    "url": "https://github.com/wuyii8941/qwen3-triton/blob/10be3d87ecb4659da7f174293f162145daaf47c9/TRAINING_REPLICATION_PLAN.md",
+    "kind": "项目源码 / 报告",
+    "note": "固定到 10be3d87（2026-11-06）。数字来自作者报告或公开清单，本站未重跑 GPU 实验；本地 artifacts 未随仓库公开。"
+  },
+  "qtied": {
+    "id": "qtied",
+    "title": "Qwen3-Triton · training/tied_embedding.py",
+    "url": "https://github.com/wuyii8941/qwen3-triton/blob/10be3d87ecb4659da7f174293f162145daaf47c9/training/tied_embedding.py",
+    "kind": "项目源码 / 报告",
+    "note": "固定到 10be3d87（2026-11-06）。数字来自作者报告或公开清单，本站未重跑 GPU 实验；本地 artifacts 未随仓库公开。"
+  },
+  "qbfsdp": {
+    "id": "qbfsdp",
+    "title": "Qwen3-Triton · training/block_fsdp.py",
+    "url": "https://github.com/wuyii8941/qwen3-triton/blob/10be3d87ecb4659da7f174293f162145daaf47c9/training/block_fsdp.py",
+    "kind": "项目源码 / 报告",
+    "note": "固定到 10be3d87（2026-11-06）。数字来自作者报告或公开清单，本站未重跑 GPU 实验；本地 artifacts 未随仓库公开。"
+  },
+  "qfsdp": {
+    "id": "qfsdp",
+    "title": "Qwen3-Triton · MINIMAL_FSDP.md",
+    "url": "https://github.com/wuyii8941/qwen3-triton/blob/10be3d87ecb4659da7f174293f162145daaf47c9/MINIMAL_FSDP.md",
+    "kind": "项目源码 / 报告",
+    "note": "固定到 10be3d87（2026-11-06）。数字来自作者报告或公开清单，本站未重跑 GPU 实验；本地 artifacts 未随仓库公开。"
+  },
+  "qckpt": {
+    "id": "qckpt",
+    "title": "Qwen3-Triton · training/sharded_checkpoint.py",
+    "url": "https://github.com/wuyii8941/qwen3-triton/blob/10be3d87ecb4659da7f174293f162145daaf47c9/training/sharded_checkpoint.py",
+    "kind": "项目源码 / 报告",
+    "note": "固定到 10be3d87（2026-11-06）。数字来自作者报告或公开清单，本站未重跑 GPU 实验；本地 artifacts 未随仓库公开。"
+  },
+  "qdeploy": {
+    "id": "qdeploy",
+    "title": "Qwen3-Triton · results/fsdp_8b_deployment.json",
+    "url": "https://github.com/wuyii8941/qwen3-triton/blob/10be3d87ecb4659da7f174293f162145daaf47c9/results/fsdp_8b_deployment.json",
+    "kind": "项目源码 / 报告",
+    "note": "固定到 10be3d87（2026-11-06）。数字来自作者报告或公开清单，本站未重跑 GPU 实验；本地 artifacts 未随仓库公开。"
+  },
+  "artifact-repro": {
+    "id": "artifact-repro",
+    "title": "DeepOpFuzz artifact · REPRODUCE.md",
+    "url": "https://github.com/wuyii8941/submission-artifact/blob/c69ead1b25018f34dd72d8b403065e813a66d61e/REPRODUCE.md",
+    "kind": "项目源码 / 报告",
+    "note": "固定到 c69ead1b。Bug 讨论对应报告中的触发版本，不代表当前 upstream 仍然存在；issue draft 不等于正式修复状态。"
+  },
+  "bug-pool": {
+    "id": "bug-pool",
+    "title": "DeepOpFuzz artifact · data/confirmed_bugs/pytorch/bug_002_adaptive_avgpool_flatten_sum/issue_draft.md",
+    "url": "https://github.com/wuyii8941/submission-artifact/blob/c69ead1b25018f34dd72d8b403065e813a66d61e/data/confirmed_bugs/pytorch/bug_002_adaptive_avgpool_flatten_sum/issue_draft.md",
+    "kind": "项目源码 / 报告",
+    "note": "固定到 c69ead1b。Bug 讨论对应报告中的触发版本，不代表当前 upstream 仍然存在；issue draft 不等于正式修复状态。"
+  },
+  "bug-bwd": {
+    "id": "bug-bwd",
+    "title": "DeepOpFuzz artifact · data/confirmed_bugs/pytorch/bug_003_slice_scatter_backward/issue_draft.md",
+    "url": "https://github.com/wuyii8941/submission-artifact/blob/c69ead1b25018f34dd72d8b403065e813a66d61e/data/confirmed_bugs/pytorch/bug_003_slice_scatter_backward/issue_draft.md",
+    "kind": "项目源码 / 报告",
+    "note": "固定到 c69ead1b。Bug 讨论对应报告中的触发版本，不代表当前 upstream 仍然存在；issue draft 不等于正式修复状态。"
+  },
+  "dfuzz": {
+    "id": "dfuzz",
+    "title": "DFuzz: Differential Fuzzing for Silent Errors in LLM Operator Optimizations",
+    "url": null,
+    "kind": "用户提供论文",
+    "note": "internetware2026-paper34.pdf，共 10 页。方法 §3 / p3–4；设置 §4 / p5；结果 Tables 2–4 / p6–7；根因 §5.3 / p8；限制 §6.2 / p9。未将 PDF 打包进网站，不推断录用状态。"
+  },
+  "deepop": {
+    "id": "deepop",
+    "title": "DeepOpFuzz: Operation-Guided Fuzzing for Deep Learning Compiler Stacks",
+    "url": null,
+    "kind": "用户提供论文",
+    "note": "icse2027-paper2560 (2)(1).pdf。方法 §IV / p4–5；实现与设置 p6；Tables I–III / p7；效率与消融 p8。30 根因回放与独立 48 个历史 bug 基准分开呈现。未打包 PDF，不推断录用状态。"
+  },
+  "guide": {
+    "id": "guide",
+    "title": "AIInfraGuide · AI Infra 学习路线",
+    "url": "https://caomaolufei.github.io/AIInfraGuide/guides/ai-infra%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/",
+    "kind": "组织形式参考",
+    "note": "借鉴分层目录、前置知识与动手练习的教学形式；本站正文为重新组织的原创讲解，不转载该站内容。"
+  },
+  "qconfig": {
+    "id": "qconfig",
+    "title": "Qwen3-1.7B · 官方模型配置",
+    "url": "https://huggingface.co/Qwen/Qwen3-1.7B/blob/main/config.json",
+    "kind": "官方模型配置",
+    "note": "用于解释 H=2048、28层、16 Q heads / 8 KV heads、D=128；模型配置来源与实验源码版本分别记录。"
+  },
+  "views": {
+    "id": "views",
+    "title": "PyTorch · Tensor Views",
+    "url": "https://docs.pytorch.org/docs/2.10/tensor_view.html",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "accuracy": {
+    "id": "accuracy",
+    "title": "PyTorch · Numerical Accuracy",
+    "url": "https://docs.pytorch.org/docs/2.10/notes/numerical_accuracy.html",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "autograd-doc": {
+    "id": "autograd-doc",
+    "title": "PyTorch · Autograd Mechanics",
+    "url": "https://docs.pytorch.org/docs/2.10/notes/autograd.html",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "cuda-semantics": {
+    "id": "cuda-semantics",
+    "title": "PyTorch · CUDA Semantics / CUDA Graphs",
+    "url": "https://docs.pytorch.org/docs/2.10/notes/cuda.html",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "crossentropy": {
+    "id": "crossentropy",
+    "title": "PyTorch · CrossEntropyLoss",
+    "url": "https://docs.pytorch.org/docs/2.10/generated/torch.nn.CrossEntropyLoss.html",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "sdpa": {
+    "id": "sdpa",
+    "title": "PyTorch · Scaled Dot Product Attention",
+    "url": "https://docs.pytorch.org/docs/2.10/generated/torch.nn.functional.scaled_dot_product_attention.html",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "nvidia-matmul": {
+    "id": "nvidia-matmul",
+    "title": "NVIDIA · Matrix Multiplication Performance",
+    "url": "https://docs.nvidia.com/deeplearning/performance/dl-performance-matrix-multiplication/index.html",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "nvidia-gpu": {
+    "id": "nvidia-gpu",
+    "title": "NVIDIA · GPU Performance Background",
+    "url": "https://docs.nvidia.com/deeplearning/performance/dl-performance-gpu-background/index.html",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "a6000": {
+    "id": "a6000",
+    "title": "NVIDIA · RTX A6000",
+    "url": "https://www.nvidia.com/en-us/products/workstations/rtx-a6000/",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "cuda-guide": {
+    "id": "cuda-guide",
+    "title": "NVIDIA · Writing CUDA Kernels",
+    "url": "https://docs.nvidia.com/cuda/cuda-programming-guide/02-basics/writing-cuda-kernels.html",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "nccl": {
+    "id": "nccl",
+    "title": "NVIDIA NCCL · Collective Operations",
+    "url": "https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/usage/collectives.html",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "mlir": {
+    "id": "mlir",
+    "title": "MLIR · Pass Infrastructure",
+    "url": "https://mlir.llvm.org/docs/PassManagement/",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "compiler": {
+    "id": "compiler",
+    "title": "PyTorch · torch.compiler",
+    "url": "https://docs.pytorch.org/docs/main/user_guide/torch_compiler/torch.compiler.html",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "dynamo-doc": {
+    "id": "dynamo-doc",
+    "title": "PyTorch · TorchDynamo Overview",
+    "url": "https://docs.pytorch.org/docs/main/user_guide/torch_compiler/torch.compiler_dynamo_overview.html",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "compile-faq": {
+    "id": "compile-faq",
+    "title": "PyTorch · Compiler FAQ",
+    "url": "https://docs.pytorch.org/docs/main/user_guide/torch_compiler/torch.compiler_faq.html",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "aot-doc": {
+    "id": "aot-doc",
+    "title": "PyTorch · AOT Autograd Optimizations",
+    "url": "https://docs.pytorch.org/functorch/stable/notebooks/aot_autograd_optimizations.html",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "compiled-autograd": {
+    "id": "compiled-autograd",
+    "title": "PyTorch · Compiled Autograd Tutorial",
+    "url": "https://docs.pytorch.org/tutorials/intermediate/compiled_autograd_tutorial.html",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "inductor-doc": {
+    "id": "inductor-doc",
+    "title": "PyTorch · Inductor IR 源码",
+    "url": "https://github.com/pytorch/pytorch/blob/v2.10.0/torch/_inductor/ir.py",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "custom-op-doc": {
+    "id": "custom-op-doc",
+    "title": "PyTorch · Custom Python Operators",
+    "url": "https://docs.pytorch.org/tutorials/advanced/python_custom_ops.html",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "fsdp-doc": {
+    "id": "fsdp-doc",
+    "title": "PyTorch · FullyShardedDataParallel",
+    "url": "https://docs.pytorch.org/docs/2.10/fsdp.html",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "fsdp2": {
+    "id": "fsdp2",
+    "title": "PyTorch · FSDP2 Tutorial",
+    "url": "https://docs.pytorch.org/tutorials/intermediate/FSDP_tutorial.html",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "amp": {
+    "id": "amp",
+    "title": "PyTorch · Automatic Mixed Precision",
+    "url": "https://docs.pytorch.org/docs/2.10/amp.html",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "checkpoint-doc": {
+    "id": "checkpoint-doc",
+    "title": "PyTorch · Activation Checkpointing",
+    "url": "https://docs.pytorch.org/docs/2.10/checkpoint.html",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "distributed-checkpoint": {
+    "id": "distributed-checkpoint",
+    "title": "PyTorch · Distributed Checkpoint",
+    "url": "https://docs.pytorch.org/docs/2.10/distributed.checkpoint.html",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "profiler": {
+    "id": "profiler",
+    "title": "PyTorch · Profiler Recipe",
+    "url": "https://docs.pytorch.org/tutorials/recipes/recipes/profiler_recipe.html",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "nsys": {
+    "id": "nsys",
+    "title": "NVIDIA · Nsight Systems User Guide",
+    "url": "https://docs.nvidia.com/nsight-systems/UserGuide/index.html",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "ncu": {
+    "id": "ncu",
+    "title": "NVIDIA · Nsight Compute Profiling Guide",
+    "url": "https://docs.nvidia.com/nsight-compute/ProfilingGuide/index.html",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "troubleshooting": {
+    "id": "troubleshooting",
+    "title": "PyTorch · torch.compile Troubleshooting",
+    "url": "https://docs.pytorch.org/docs/main/user_guide/torch_compiler/torch.compiler_troubleshooting.html",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "vllm-metrics": {
+    "id": "vllm-metrics",
+    "title": "vLLM · Metrics Design",
+    "url": "https://docs.vllm.ai/en/latest/design/metrics/",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "vllm-prefix": {
+    "id": "vllm-prefix",
+    "title": "vLLM · Automatic Prefix Caching",
+    "url": "https://docs.vllm.ai/en/latest/features/automatic_prefix_caching/",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "vllm-chunk": {
+    "id": "vllm-chunk",
+    "title": "vLLM · Optimization and Chunked Prefill",
+    "url": "https://docs.vllm.ai/en/latest/configuration/optimization/",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "vllm-pd": {
+    "id": "vllm-pd",
+    "title": "vLLM · Disaggregated Prefill",
+    "url": "https://docs.vllm.ai/en/latest/features/disagg_prefill/",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "megatron-doc": {
+    "id": "megatron-doc",
+    "title": "NVIDIA Megatron Core · Tensor Parallel Layers",
+    "url": "https://docs.nvidia.com/megatron-core/developer-guide/latest/apidocs/core/core.tensor_parallel.layers.html",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "triton-ir": {
+    "id": "triton-ir",
+    "title": "Triton · TritonOps",
+    "url": "https://triton-lang.org/main/dialects/TritonOps.html",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "triton-add": {
+    "id": "triton-add",
+    "title": "Triton · Vector Addition",
+    "url": "https://triton-lang.org/main/getting-started/tutorials/01-vector-add.html",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "triton-softmax": {
+    "id": "triton-softmax",
+    "title": "Triton · Fused Softmax",
+    "url": "https://triton-lang.org/main/getting-started/tutorials/02-fused-softmax.html",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "triton-matmul": {
+    "id": "triton-matmul",
+    "title": "Triton · Matrix Multiplication",
+    "url": "https://triton-lang.org/main/getting-started/tutorials/03-matrix-multiplication.html",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "triton-attention": {
+    "id": "triton-attention",
+    "title": "Triton · Fused Attention",
+    "url": "https://triton-lang.org/main/getting-started/tutorials/06-fused-attention.html",
+    "kind": "官方文档",
+    "note": "通用知识参考；API 与实现细节请对齐自己的安装版本。"
+  },
+  "qwen": {
+    "id": "qwen",
+    "title": "Qwen3 Technical Report",
+    "url": "https://arxiv.org/abs/2505.09388",
+    "kind": "原始研究论文",
+    "note": "用于算法定义、数学背景及延伸阅读；论文提出的方法不自动构成你的项目贡献。"
+  },
+  "deepseek": {
+    "id": "deepseek",
+    "title": "DeepSeek-V3 Technical Report",
+    "url": "https://arxiv.org/abs/2412.19437",
+    "kind": "原始研究论文",
+    "note": "用于算法定义、数学背景及延伸阅读；论文提出的方法不自动构成你的项目贡献。"
+  },
+  "rms-paper": {
+    "id": "rms-paper",
+    "title": "Root Mean Square Layer Normalization",
+    "url": "https://arxiv.org/abs/1910.07467",
+    "kind": "原始研究论文",
+    "note": "用于算法定义、数学背景及延伸阅读；论文提出的方法不自动构成你的项目贡献。"
+  },
+  "rope-paper": {
+    "id": "rope-paper",
+    "title": "RoFormer: Enhanced Transformer with Rotary Position Embedding",
+    "url": "https://arxiv.org/abs/2104.09864",
+    "kind": "原始研究论文",
+    "note": "用于算法定义、数学背景及延伸阅读；论文提出的方法不自动构成你的项目贡献。"
+  },
+  "gqa-paper": {
+    "id": "gqa-paper",
+    "title": "GQA: Training Generalized Multi-Query Transformer Models",
+    "url": "https://arxiv.org/abs/2305.13245",
+    "kind": "原始研究论文",
+    "note": "用于算法定义、数学背景及延伸阅读；论文提出的方法不自动构成你的项目贡献。"
+  },
+  "flash": {
+    "id": "flash",
+    "title": "FlashAttention: Fast and Memory-Efficient Exact Attention",
+    "url": "https://arxiv.org/abs/2205.14135",
+    "kind": "原始研究论文",
+    "note": "用于算法定义、数学背景及延伸阅读；论文提出的方法不自动构成你的项目贡献。"
+  },
+  "flash2": {
+    "id": "flash2",
+    "title": "FlashAttention-2: Faster Attention with Better Parallelism",
+    "url": "https://arxiv.org/abs/2307.08691",
+    "kind": "原始研究论文",
+    "note": "用于算法定义、数学背景及延伸阅读；论文提出的方法不自动构成你的项目贡献。"
+  },
+  "online-softmax": {
+    "id": "online-softmax",
+    "title": "Online Normalizer Calculation for Softmax",
+    "url": "https://arxiv.org/abs/1805.02867",
+    "kind": "原始研究论文",
+    "note": "用于算法定义、数学背景及延伸阅读；论文提出的方法不自动构成你的项目贡献。"
+  },
+  "paged": {
+    "id": "paged",
+    "title": "Efficient Memory Management for LLM Serving with PagedAttention",
+    "url": "https://arxiv.org/abs/2309.06180",
+    "kind": "原始研究论文",
+    "note": "用于算法定义、数学背景及延伸阅读；论文提出的方法不自动构成你的项目贡献。"
+  },
+  "speculative": {
+    "id": "speculative",
+    "title": "Fast Inference from Transformers via Speculative Decoding",
+    "url": "https://arxiv.org/abs/2211.17192",
+    "kind": "原始研究论文",
+    "note": "用于算法定义、数学背景及延伸阅读；论文提出的方法不自动构成你的项目贡献。"
+  },
+  "quant-paper": {
+    "id": "quant-paper",
+    "title": "AWQ: Activation-aware Weight Quantization for LLM Compression",
+    "url": "https://arxiv.org/abs/2306.00978",
+    "kind": "原始研究论文",
+    "note": "用于算法定义、数学背景及延伸阅读；论文提出的方法不自动构成你的项目贡献。"
+  },
+  "adam": {
+    "id": "adam",
+    "title": "Adam: A Method for Stochastic Optimization",
+    "url": "https://arxiv.org/abs/1412.6980",
+    "kind": "原始研究论文",
+    "note": "用于算法定义、数学背景及延伸阅读；论文提出的方法不自动构成你的项目贡献。"
+  },
+  "adamw-paper": {
+    "id": "adamw-paper",
+    "title": "Decoupled Weight Decay Regularization",
+    "url": "https://arxiv.org/abs/1711.05101",
+    "kind": "原始研究论文",
+    "note": "用于算法定义、数学背景及延伸阅读；论文提出的方法不自动构成你的项目贡献。"
+  },
+  "megatron": {
+    "id": "megatron",
+    "title": "Megatron-LM: Training Multi-Billion Parameter Language Models",
+    "url": "https://arxiv.org/abs/1909.08053",
+    "kind": "原始研究论文",
+    "note": "用于算法定义、数学背景及延伸阅读；论文提出的方法不自动构成你的项目贡献。"
+  },
+  "sequence-paper": {
+    "id": "sequence-paper",
+    "title": "Reducing Activation Recomputation in Large Transformer Models",
+    "url": "https://arxiv.org/abs/2205.05198",
+    "kind": "原始研究论文",
+    "note": "用于算法定义、数学背景及延伸阅读；论文提出的方法不自动构成你的项目贡献。"
+  },
+  "pipeline-paper": {
+    "id": "pipeline-paper",
+    "title": "GPipe: Efficient Training of Giant Neural Networks",
+    "url": "https://arxiv.org/abs/1811.06965",
+    "kind": "原始研究论文",
+    "note": "用于算法定义、数学背景及延伸阅读；论文提出的方法不自动构成你的项目贡献。"
+  },
+  "zero-paper": {
+    "id": "zero-paper",
+    "title": "ZeRO: Memory Optimizations Toward Training Trillion Parameter Models",
+    "url": "https://arxiv.org/abs/1910.02054",
+    "kind": "原始研究论文",
+    "note": "用于算法定义、数学背景及延伸阅读；论文提出的方法不自动构成你的项目贡献。"
+  },
+  "transformer-paper": {
+    "id": "transformer-paper",
+    "title": "Attention Is All You Need",
+    "url": "https://arxiv.org/abs/1706.03762",
+    "kind": "原始研究论文",
+    "note": "用于算法定义、数学背景及延伸阅读；论文提出的方法不自动构成你的项目贡献。"
+  }
+}
