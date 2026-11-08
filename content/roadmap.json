@@ -1,0 +1,772 @@
+{
+  "paths": [
+    {
+      "id": "foundation",
+      "name": "从零建立全貌",
+      "label": "基础路线",
+      "desc": "从张量的表示、计算与求导，走到 Transformer 前向和两种使用方式。",
+      "stages": [
+        {
+          "title": "张量与计算账本",
+          "transition": "先把逻辑坐标换成地址，再从点积算出工作量，最后用 FLOPs 和字节数建立性能上界。",
+          "items": [
+            "orientation",
+            "tensor-layout",
+            "gemm-flops",
+            "roofline"
+          ]
+        },
+        {
+          "title": "有限精度与梯度",
+          "transition": "有了张量与计算的定义，加入浮点舍入和链式法则，得到可更新的模型参数。",
+          "items": [
+            "floating-point",
+            "autograd"
+          ]
+        },
+        {
+          "title": "完整模型前向",
+          "transition": "把文本编码为 ID，沿 Embedding、Decoder Block、注意力和输出层追踪形状。",
+          "items": [
+            "tokens-loss",
+            "transformer",
+            "attention",
+            "rmsnorm",
+            "rope",
+            "swiglu",
+            "gqa-mla"
+          ]
+        },
+        {
+          "title": "执行与两种用途",
+          "transition": "GPU 将计算映射到线程。生成时保留历史 KV，训练时按梯度更新参数。",
+          "items": [
+            "gpu-execution",
+            "prefill-decode",
+            "adamw"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kernel",
+      "name": "模型算子到推理执行",
+      "label": "性能路线",
+      "desc": "先确定工作量与内存流量，再把模型公式映射到 GPU，最后在生成路径上验证优化。",
+      "stages": [
+        {
+          "title": "从公式标出可优化成本",
+          "transition": "计算账本和注意力形状帮助区分矩阵运算、KV 容量、归约和位置变换。",
+          "items": [
+            "gemm-flops",
+            "roofline",
+            "attention",
+            "rmsnorm",
+            "rope",
+            "swiglu",
+            "gqa-mla"
+          ]
+        },
+        {
+          "title": "把模型计算映射到 GPU",
+          "transition": "先看线程与访存，再用分块、在线归约和 Triton Program 控制数据复用。",
+          "items": [
+            "gpu-execution",
+            "gpu-memory",
+            "gemm-tiling",
+            "reduction-softmax",
+            "triton-model"
+          ]
+        },
+        {
+          "title": "重组算子的读写",
+          "transition": "Q/K 前处理融合减少中间张量，FlashAttention 在片上合并分块统计。",
+          "items": [
+            "qk-fusion",
+            "flashattention"
+          ]
+        },
+        {
+          "title": "验证完整推理链",
+          "transition": "区分 Prefill 和 Decode，观察 Graph 提交成本，再用匹配的基线验证项目收益。",
+          "items": [
+            "prefill-decode",
+            "cuda-graph",
+            "profiling",
+            "project-qwen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "training",
+      "name": "单卡训练到分布式分片",
+      "label": "训练路线",
+      "desc": "沿一次参数更新展开梯度、状态、激活和通信，逐项建立显存账本。",
+      "stages": [
+        {
+          "title": "列出一次更新所需的状态",
+          "transition": "反向给出梯度，AdamW 用梯度和矩状态更新参数。共享权重合并所有路径贡献。",
+          "items": [
+            "autograd",
+            "adamw",
+            "tied-grad",
+            "mixed-precision"
+          ]
+        },
+        {
+          "title": "控制激活与同步时机",
+          "transition": "微批次累积保持全局目标，重算改变激活生命周期，集合通信合并各 Rank 的贡献。",
+          "items": [
+            "accum-recompute",
+            "collectives"
+          ]
+        },
+        {
+          "title": "从复制到分片",
+          "transition": "先用 DDP 的全量状态作基线，再跟踪 FSDP 的聚合、梯度分片和本地更新。",
+          "items": [
+            "fsdp-zero",
+            "block-fsdp"
+          ]
+        },
+        {
+          "title": "扩展并行轴并验证恢复",
+          "transition": "沿模型维度、层和序列切分后，分别核算通信和恢复需要保存的状态。",
+          "items": [
+            "megatron-tp",
+            "pp-cp-moe",
+            "checkpoints"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "compiler",
+      "name": "PyTorch 程序到编译验证",
+      "label": "研究路线",
+      "desc": "追踪 Python、计算图、调度和生成代码，再为每个观察层建立可复现的对照。",
+      "stages": [
+        {
+          "title": "建立语义参照",
+          "transition": "张量布局、舍入和反向规则决定后续编译必须保留的可观察行为。",
+          "items": [
+            "tensor-layout",
+            "floating-point",
+            "autograd"
+          ]
+        },
+        {
+          "title": "跟踪编译产物",
+          "transition": "从 Python 捕获图和复用条件，得到前后向图，再观察调度、代码生成与自定义算子契约。",
+          "items": [
+            "dynamo",
+            "aotautograd",
+            "inductor",
+            "triton-codegen",
+            "custom-ops"
+          ]
+        },
+        {
+          "title": "从差异定位触发条件",
+          "transition": "先按后端和中间结果缩小范围，再用 Oracle 和定向生成复现目标。",
+          "items": [
+            "compiler-debug",
+            "oracles",
+            "deepop-method"
+          ]
+        },
+        {
+          "title": "从案例提炼证据",
+          "transition": "用两个实际案例验证地址与梯度语义，再对照项目中的不同实验分母。",
+          "items": [
+            "pool-bug",
+            "backward-bug",
+            "project-deepop"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dfuzz",
+      "name": "训练数值与差分搜索",
+      "label": "数值路线",
+      "desc": "建立训练数值基线，依次搜索敏感配置与输入，再用控制实验定位原因。",
+      "stages": [
+        {
+          "title": "建立训练数值基线",
+          "transition": "浮点格式决定舍入，反向与优化器将局部差异传到下一次更新。",
+          "items": [
+            "floating-point",
+            "autograd",
+            "rmsnorm",
+            "adamw"
+          ]
+        },
+        {
+          "title": "固定比较口径",
+          "transition": "用相同起始状态和数据比较两条执行路径，并为差异选定度量、阈值与预算。",
+          "items": [
+            "oracles"
+          ]
+        },
+        {
+          "title": "依次搜索配置与输入",
+          "transition": "先定位敏感的训练配置，再固定配置，沿连续代理搜索并评估离散 Token。",
+          "items": [
+            "dfuzz-config",
+            "dfuzz-input"
+          ]
+        },
+        {
+          "title": "验证并解释案例",
+          "transition": "分别检验公式、精度转换和运算顺序，最后按实验边界整理结论。",
+          "items": [
+            "dfuzz-megatron",
+            "project-dfuzz"
+          ]
+        }
+      ]
+    }
+  ],
+  "sections": {
+    "foundations": {
+      "title": "从张量的定义推导成本与梯度",
+      "steps": [
+        {
+          "article": "tensor-layout",
+          "label": "张量地址",
+          "detail": "形状、步长和类型决定元素的位置。"
+        },
+        {
+          "article": "gemm-flops",
+          "label": "数学工作量",
+          "detail": "用地址取数，从点积推到矩阵工作量。"
+        },
+        {
+          "article": "roofline",
+          "label": "执行时间上界",
+          "detail": "把 FLOPs 和字节数映射到硬件上限。"
+        },
+        {
+          "article": "autograd",
+          "label": "反向依赖",
+          "detail": "在前向运算上应用链式法则，得到参数梯度。"
+        }
+      ]
+    },
+    "model": {
+      "title": "从输入序列到输出分布",
+      "steps": [
+        {
+          "article": "tokens-loss",
+          "label": "Token 与向量",
+          "detail": "查表得到隐藏状态矩阵。"
+        },
+        {
+          "article": "attention",
+          "label": "跨位置混合",
+          "detail": "每层先用 Q/K 打分，以 V 汇总上下文，再做第一次残差相加。"
+        },
+        {
+          "article": "swiglu",
+          "label": "位置内变换",
+          "detail": "每层再用 MLP 改写特征，第二次残差相加得到下一层输入。"
+        },
+        {
+          "article": "tokens-loss",
+          "label": "输出分布",
+          "detail": "重复各层后，LM Head 把隐藏维映射到词表维，Softmax 得到概率。"
+        }
+      ]
+    },
+    "gpu": {
+      "title": "从算子公式到并行执行",
+      "steps": [
+        {
+          "article": "gpu-execution",
+          "label": "任务划分",
+          "detail": "把输出映射到线程块或 Triton Program。"
+        },
+        {
+          "article": "gpu-memory",
+          "label": "数据搬运",
+          "detail": "按地址合并读取并在片上复用。"
+        },
+        {
+          "article": "triton-model",
+          "label": "实现与调度",
+          "detail": "确定分块、边界掩码和读写布局。"
+        },
+        {
+          "article": "profiling",
+          "label": "测量与归因",
+          "detail": "按执行时间线和硬件数据验证成本。"
+        }
+      ]
+    },
+    "inference": {
+      "title": "从已有提示到连续生成",
+      "steps": [
+        {
+          "article": "prefill-decode",
+          "label": "Prefill",
+          "detail": "处理提示并建立各层 KV。"
+        },
+        {
+          "article": "gqa-mla",
+          "label": "Decode",
+          "detail": "读取历史 KV、加入当前 K/V，得到下一 Token。"
+        },
+        {
+          "article": "cuda-graph",
+          "label": "重复执行",
+          "detail": "复用静态存储地址和提交路径。"
+        },
+        {
+          "article": "serving",
+          "label": "请求调度",
+          "detail": "管理并发请求、缓存页与延迟目标。"
+        }
+      ]
+    },
+    "training": {
+      "title": "从梯度到分片更新",
+      "steps": [
+        {
+          "article": "autograd",
+          "label": "前向和反向",
+          "detail": "计算 Loss 并沿依赖求梯度。"
+        },
+        {
+          "article": "adamw",
+          "label": "状态与更新",
+          "detail": "用梯度、一阶矩、二阶矩更新权重。"
+        },
+        {
+          "article": "accum-recompute",
+          "label": "控制驻留显存",
+          "detail": "用微批次和激活重算缩小峰值。"
+        },
+        {
+          "article": "block-fsdp",
+          "label": "分片执行",
+          "detail": "聚合当前参数单元，归约梯度，再更新本地分片。"
+        }
+      ]
+    },
+    "compiler": {
+      "title": "从 Python 到可执行 Kernel",
+      "steps": [
+        {
+          "article": "dynamo",
+          "label": "捕获图",
+          "detail": "用 FX 图表示可捕获计算，并记录 Guards。"
+        },
+        {
+          "article": "aotautograd",
+          "label": "构造前后向图",
+          "detail": "把求导与保存值的依赖交给后端。"
+        },
+        {
+          "article": "inductor",
+          "label": "降低与调度",
+          "detail": "选择库调用或生成 Kernel，安排循环与缓冲区。"
+        },
+        {
+          "article": "triton-codegen",
+          "label": "生成可执行产物",
+          "detail": "检查索引、类型和布局在降低过程中是否保持。"
+        }
+      ]
+    },
+    "reliability": {
+      "title": "从比较差异到验证根因",
+      "steps": [
+        {
+          "article": "oracles",
+          "label": "定义 Oracle",
+          "detail": "固定参考、度量与可接受差异。"
+        },
+        {
+          "article": "dfuzz-config",
+          "label": "搜索触发条件",
+          "detail": "训练测试搜索配置和输入，编译测试定向触达目标。"
+        },
+        {
+          "article": "compiler-debug",
+          "label": "缩小差异范围",
+          "detail": "保留触发条件，分层比较并最小化复现。"
+        },
+        {
+          "article": "backward-bug",
+          "label": "验证解释",
+          "detail": "改变一个因素，检查现象是否按预测变化。"
+        }
+      ]
+    },
+    "projects": {
+      "title": "将项目结论拆成可复核的证据",
+      "steps": [
+        {
+          "article": "project-qwen",
+          "label": "界定执行范围",
+          "detail": "以 Qwen3-Triton 为例，分开算子、整段推理与分片训练的测量范围。"
+        },
+        {
+          "article": "project-dfuzz",
+          "label": "建立匹配基线",
+          "detail": "以 DFuzz 为例，固定初始状态和输入，再比较优化开关带来的差异。"
+        },
+        {
+          "article": "project-deepop",
+          "label": "核对中间产物",
+          "detail": "以 DeepOpFuzz 为例，用生成产物和最小复现连接编译决策与错误。"
+        },
+        {
+          "article": "interview",
+          "label": "统一证据结构",
+          "detail": "说明输入、基线、测量范围、结果与适用条件。"
+        }
+      ]
+    }
+  },
+  "chapters": {
+    "tensor-layout": {
+      "title": "由逻辑坐标找到实际内存地址",
+      "steps": [
+        {
+          "label": "形状与索引",
+          "detail": "先确认每一维的索引范围。"
+        },
+        {
+          "label": "Stride 与偏移",
+          "detail": "用 o = o₀ + Σ iₖsₖ 得到元素偏移。"
+        },
+        {
+          "label": "字节地址",
+          "detail": "将元素偏移乘以元素字节数，再加到存储基地址。"
+        },
+        {
+          "label": "布局与读写",
+          "detail": "比较相邻线程访问的地址，判断视图、复制和合并访存。"
+        }
+      ]
+    },
+    "gemm-flops": {
+      "title": "从一个点积推到一次训练更新",
+      "steps": [
+        {
+          "label": "单个输出",
+          "detail": "一行乘一列，做 K 次乘法与 K−1 次加法。"
+        },
+        {
+          "label": "全体输出",
+          "detail": "M×N 个点积，工程口径约为 2MNK FLOPs。"
+        },
+        {
+          "label": "反向两条路径",
+          "detail": "用 G 计算 dX 和 dW，各多一次同规模乘法。"
+        },
+        {
+          "label": "层级成本",
+          "detail": "前向与两次反向合计约 6MNK，随后按层汇总。"
+        }
+      ]
+    },
+    "roofline": {
+      "title": "用同一份工作量判断两种上限",
+      "steps": [
+        {
+          "label": "数 FLOPs 与字节",
+          "detail": "F 是计算量，Q 是指定存储层的数据流量。"
+        },
+        {
+          "label": "求算术强度",
+          "detail": "用 F ÷ Q 将两种成本连起来。"
+        },
+        {
+          "label": "比较上界",
+          "detail": "性能受 min(计算峰值, 算术强度 × 带宽) 限制。"
+        },
+        {
+          "label": "与实测对齐",
+          "detail": "明显低于上界时，用时间线和计数器检查调度与访存。"
+        }
+      ]
+    },
+    "autograd": {
+      "title": "从前向值回到参数梯度",
+      "steps": [
+        {
+          "label": "前向",
+          "detail": "执行运算并形成从输入到 Loss 的依赖。"
+        },
+        {
+          "label": "保存必要值",
+          "detail": "由局部导数决定反向需要哪些前向值。"
+        },
+        {
+          "label": "反向",
+          "detail": "从 Loss 梯度开始，按反方向传播并累加多条路径。"
+        },
+        {
+          "label": "更新",
+          "detail": "优化器读取参数梯度，生成下一步参数与状态。"
+        }
+      ]
+    },
+    "transformer": {
+      "title": "一次 Pre-Norm Block 的数据流",
+      "steps": [
+        {
+          "label": "输入 X",
+          "detail": "形状为 [B, S, H]，作为第一条残差支路。"
+        },
+        {
+          "label": "注意力子层",
+          "detail": "归一化、投影、混合上下文，再投影回 H。"
+        },
+        {
+          "label": "得到 X₁",
+          "detail": "把注意力结果加回 X，作为第二条残差支路。"
+        },
+        {
+          "label": "得到 X₂",
+          "detail": "对 X₁ 归一化和逐 Token MLP，再加回 X₁。"
+        }
+      ]
+    },
+    "attention": {
+      "title": "一次注意力的形状变化",
+      "steps": [
+        {
+          "label": "投影 Q、K、V",
+          "detail": "从隐藏状态得到每个 Head 的查询、键和值。"
+        },
+        {
+          "label": "构造打分",
+          "detail": "QKᵀ 除以 √D 得到 S_q × S_k 的分数，再应用位置掩码。"
+        },
+        {
+          "label": "按行归一化",
+          "detail": "每个 Query 在允许的 Key 位置上计算 Softmax。"
+        },
+        {
+          "label": "加权求和",
+          "detail": "概率矩阵乘 V，得到 S_q × D_v 的输出。"
+        }
+      ]
+    },
+    "reduction-softmax": {
+      "title": "在线 Softmax 的状态更新",
+      "steps": [
+        {
+          "label": "块内统计",
+          "detail": "每块求最大值 m、指数和 ℓ 与加权和 u。"
+        },
+        {
+          "label": "统一指数基准",
+          "detail": "取共同最大值，用指数因子分别缩放各块的 ℓ 和 u。"
+        },
+        {
+          "label": "合并累加器",
+          "detail": "相加得到跨块的 ℓ 与 u，重复处理下一块。"
+        },
+        {
+          "label": "写出归一化结果",
+          "detail": "使用 u ÷ ℓ，按实现契约处理全掩码行。"
+        }
+      ]
+    },
+    "flashattention": {
+      "title": "固定 Q 块并流式遍历 KV",
+      "steps": [
+        {
+          "label": "取 Q 块",
+          "detail": "让同一组 Query 在片上参与多轮计算。"
+        },
+        {
+          "label": "读取一块 K/V",
+          "detail": "计算局部分数并应用掩码。"
+        },
+        {
+          "label": "在线合并",
+          "detail": "更新每行 m、ℓ 和 u，然后继续处理下一块 K/V。"
+        },
+        {
+          "label": "写出输出",
+          "detail": "合并结束后写 u ÷ ℓ，避免把完整分数矩阵写回显存。"
+        }
+      ]
+    },
+    "prefill-decode": {
+      "title": "从 Prompt 到第二个生成 Token",
+      "steps": [
+        {
+          "label": "处理 Prompt",
+          "detail": "对已有位置执行前向，每层写入对应 K/V。"
+        },
+        {
+          "label": "生成首个 Token",
+          "detail": "用 Prompt 最后一个位置的 logits 选出第一个新 Token。"
+        },
+        {
+          "label": "推进 Decode",
+          "detail": "输入该新 Token，读取历史并写入它的 K/V。"
+        },
+        {
+          "label": "生成下一 Token",
+          "detail": "从新位置的 logits 选择输出，再重复 Decode。"
+        }
+      ]
+    },
+    "accum-recompute": {
+      "title": "激活检查点改变前后向间的存储",
+      "steps": [
+        {
+          "label": "初次前向",
+          "detail": "沿模型计算 Loss，保存各段边界。"
+        },
+        {
+          "label": "跨阶段保留",
+          "detail": "释放段内激活，保留边界供重算。"
+        },
+        {
+          "label": "反向到达一段",
+          "detail": "从边界重新执行本段所需前向。"
+        },
+        {
+          "label": "立即消费和释放",
+          "detail": "用重建值求梯度，再进入上一段。"
+        }
+      ]
+    },
+    "collectives": {
+      "title": "以两张卡的 SUM 为例",
+      "steps": [
+        {
+          "label": "两卡各有 4 个数",
+          "detail": "Rank 0 为 [1,2,3,4]，Rank 1 为 [10,20,30,40]。"
+        },
+        {
+          "label": "Reduce-Scatter",
+          "detail": "逐位置求和并分片，两个 Rank 分别拿到 [11,22] 和 [33,44]。"
+        },
+        {
+          "label": "All-Gather",
+          "detail": "交换并按 Rank 顺序拼接两个已求和的分片。"
+        },
+        {
+          "label": "All-Reduce 结果",
+          "detail": "两卡均得到完整向量 [11,22,33,44]。"
+        }
+      ]
+    },
+    "fsdp-zero": {
+      "title": "Full Shard 的参数和梯度生命周期",
+      "steps": [
+        {
+          "label": "常驻分片",
+          "detail": "每个 Rank 保留自己的参数和优化器状态分片。"
+        },
+        {
+          "label": "按单元聚合",
+          "detail": "执行当前单元前先 All-Gather，前向后可释放完整副本。"
+        },
+        {
+          "label": "反向与归约",
+          "detail": "按策略重聚合，求梯度并 Reduce-Scatter。"
+        },
+        {
+          "label": "本地更新",
+          "detail": "每个 Rank 只更新自己负责的分片。"
+        }
+      ]
+    },
+    "dynamo": {
+      "title": "从 Python 帧到可复用的计算图",
+      "steps": [
+        {
+          "label": "进入已包装函数",
+          "detail": "Dynamo 跟踪可捕获的 Python 执行。"
+        },
+        {
+          "label": "提取图与条件",
+          "detail": "FX 图记录算子，Guards 约束复用。"
+        },
+        {
+          "label": "编译与执行",
+          "detail": "捕获区域交给后端，图间 Python 继续执行。"
+        },
+        {
+          "label": "再次调用",
+          "detail": "Guards 通过时复用，失效时按策略重新编译或回退。"
+        }
+      ]
+    },
+    "aotautograd": {
+      "title": "从前向图到训练的可编译前后向",
+      "steps": [
+        {
+          "label": "确定前向计算",
+          "detail": "以捕获区域为边界，记录张量和元数据。"
+        },
+        {
+          "label": "跟踪求导",
+          "detail": "构造前向与反向依赖，使保存和重算选择可见。"
+        },
+        {
+          "label": "切分联合图",
+          "detail": "前向返回用户输出及反向需要的值。"
+        },
+        {
+          "label": "运行反向图",
+          "detail": "消费保存值和上游梯度，产出所需的输入或参数梯度。"
+        }
+      ]
+    },
+    "dfuzz-config": {
+      "title": "把算子差异变成训练级评价",
+      "steps": [
+        {
+          "label": "固定共同条件",
+          "detail": "从相同初始状态、数据和种子出发。"
+        },
+        {
+          "label": "运行 ON / OFF",
+          "detail": "只改变目标优化开关，分别记录 Loss 轨迹。"
+        },
+        {
+          "label": "计算差异",
+          "detail": "用约定度量为当前配置打分。"
+        },
+        {
+          "label": "分配搜索预算",
+          "detail": "保留有信息的配置，后续针对固定配置搜索输入。"
+        }
+      ]
+    },
+    "deepop-method": {
+      "title": "从目标操作到可核查的编译器差异",
+      "steps": [
+        {
+          "label": "选择目标",
+          "detail": "用操作与约束描述想触达的编译行为。"
+        },
+        {
+          "label": "生成可执行样例",
+          "detail": "组织图和输入，使目标有机会被选中。"
+        },
+        {
+          "label": "检查生成产物",
+          "detail": "验证目标是否实际出现在图或生成代码中。"
+        },
+        {
+          "label": "运行 Oracle",
+          "detail": "用对照输出、梯度或运行行为发现并复核异常。"
+        }
+      ]
+    }
+  }
+}

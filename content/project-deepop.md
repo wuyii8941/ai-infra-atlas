@@ -30,5 +30,5 @@ pool stride案例说明shape、batch与schedule决定是否暴露错误；slice_
 
 仓库个别issue draft包含强语气或泛化判断，网站只采用最小可支持结论：指定版本、输入与artifact的失败机制。正式修复位置和最新上游状态不由草稿标题推定。
 
-## 面试表述
+## 用三组证据呈现贡献
 最有价值的不是“我会fuzzing”，而是能解释如何把编译条件映射为测试输入、如何确认实际生成的代码、如何通过解析或差分oracle定位错误。讨论AI Compiler时，应沿lowering、metadata、scheduling和codegen展开，而不是堆没有实现证据的关键词。

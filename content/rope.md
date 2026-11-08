@@ -1,4 +1,4 @@
-## Attention为什么还需要位置
+## 用旋转将相对位置写入点积
 仅靠内容向量的点积，不能完整表达“同一个token出现在不同位置”。RoPE将位置m映射成旋转矩阵 $R_m$，再作用于query和key，使相对位置影响它们的点积。
 
 对一个二维子空间：
@@ -11,7 +11,7 @@ $$(R_mq)^T(R_nk)=q^TR_m^TR_nk=q^TR_{n-m}k.$$
 
 这里利用旋转矩阵的可组合性。不同维度对使用不同频率 $\theta_{m,j}=m\omega_j$，构成多频率相对位置表示。不是给每个token简单加一个独立向量。
 
-## Qwen为什么是split-half
+## Qwen 的 Split-half 配对
 设D=8，split-half把维度配为(0,4)、(1,5)、(2,6)、(3,7)。若 $x=[a,b]$，其中a/b各为D/2维，则
 
 $$rotate\_half(x)=[-b,a],$$
@@ -21,7 +21,7 @@ $$y=x\odot cos+rotate\_half(x)\odot sin.$$
 
 项目索引 `p = where(d < D/2, d+D/2, d-D/2)` 正是寻找另一半搭档。每个program处理一个head，所以不需要跨head通信。
 
-## 为什么作用在Q/K而不是V
+## 旋转 Q 和 K 改变位置间打分
 相对位置应影响attention评分，即QK点积。原始RoPE形式对Q/K旋转，V作为被加权内容保留。模型变体可以不同，但本项目必须匹配Qwen真实实现。你直接写V cache的kernel只是复制V，不对V做Norm或RoPE。
 
 ## 融合的合法性与限制

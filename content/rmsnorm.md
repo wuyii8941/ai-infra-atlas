@@ -1,4 +1,4 @@
-## 它在控制什么
+## 用均方根控制输入尺度
 隐藏向量的数值尺度影响下游计算。LayerNorm减去均值再按标准差归一化；RMSNorm只用均方根尺度，不做中心化。对一行 $x\in\mathbb R^D$：
 
 $$r=(\frac1D\sum_i x_i^2+\epsilon)^{-1/2},\qquad y_i=w_ix_ir.$$
@@ -10,10 +10,10 @@ w是可学习scale，epsilon避免零附近的分母问题。忽略epsilon且a>0
 
 Qwen block级RMSNorm沿H维；QK-Norm沿每个head的D维。每行需要独立的r，所以一个program负责一行是自然起点，但并非所有shape上的最佳schedule。
 
-## forward为什么通常用FP32归约
+## FP32 归约扩大中间量的表示范围
 平方和可能跨越大量元素，低精度直接相加会增加误差。常见方式是低精度输入转FP32计算r，再按契约cast。项目HF兼容kernel保留 normalize→cast→scale→cast 的某些边界，不是“全程FP32最后一次舍入”。
 
-## backward 不只是一句 autograd
+## 由链式法则推导反向传播
 令上游梯度为g，定义 $a_i=g_iw_i$。因
 
 $$\frac{\partial r}{\partial x_j}=-\frac{x_j}{D}r^3,$$

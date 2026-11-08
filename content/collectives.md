@@ -1,17 +1,19 @@
-## Rank并不是GPU全局物理编号
+## 进程组中的 Rank 与设备映射
 Rank是通信组中的进程编号。通常每进程绑定一个GPU，但进程组可不同，local rank与global rank也不同。Collective要求各参与rank遵守一致的调用顺序、shape/count与dtype契约；一张卡跳过调用可能使其他卡永久等待。
 
-## 三个操作用数组解释
+## 用数组推导三种集合通信
 两卡分别持有 `[1,2]`、`[3,4]`，All-Gather后两卡都得到 `[1,2,3,4]`。这里是拼接，不是相加。
 
 Reduce-Scatter的输入若各为完整4元素：rank0 `[1,2,3,4]`，rank1 `[10,20,30,40]`，SUM归约为 `[11,22,33,44]`，rank0接收前半 `[11,22]`，rank1接收后半 `[33,44]`。
 
-All-Reduce则让每张卡都拿到完整 `[11,22,33,44]`。概念上，SUM Reduce-Scatter后All-Gather可组成相同语义。
+All-Reduce 让每张卡都拿到完整的规约结果。设每卡输入为 $x_r$，完整结果为 $y=\sum_{r=0}^{N-1}x_r$。Reduce-Scatter 让 Rank $k$ 只接收 $y$ 的第 $k$ 块，再由 All-Gather 按顺序拼出完整的 $y$，于是每卡得到 [11,22,33,44]。公式说明的是操作语义，浮点实现改变求和顺序时可能出现舍入差异。
 
-## 平均梯度为什么还要除以world size
+[NVIDIA NCCL 官方集合通信图](https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/usage/collectives.html)
+
+## 从局部平均推导全局梯度
 每卡loss是相同有效token数上的mean时，全局平均梯度为 $g=\frac1N\sum_r g_r$。SUM只做求和，需除以N。有效token数不同应使用加权平均，不是简单除rank数。
 
-## Ring公式从哪里来
+## Ring 的通信字节数和时间模型
 设每个rank参与规约的完整张量为S字节，切成N块，每块S/N。Reduce-Scatter需要N−1轮，All-Gather再N−1轮。每轮每卡发送一块，因此单卡总发送量
 
 $$V_{send}=2\frac{N-1}{N}S.$$

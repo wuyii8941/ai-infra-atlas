@@ -1,4 +1,4 @@
-## SGD为什么不够描述你的训练
+## 从 SGD 更新到 AdamW 的一阶矩与二阶矩
 SGD用 $\theta_{t+1}=\theta_t-\eta g_t$ 更新参数。Adam额外跟踪梯度的一阶、二阶指数移动平均：
 
 $$m_t=\beta_1m_{t-1}+(1-\beta_1)g_t,$$
@@ -13,7 +13,7 @@ $$\theta_{t+1}=(1-\eta\lambda)\theta_t-\eta\frac{\hat m_t}{\sqrt{\hat v_t}+\epsi
 ## 从公式推导数据量
 一次更新至少读参数、grad、m、v，写回参数、m、v。全FP32的理想逻辑流量约(4+3)×4=28 bytes/parameter。算术量也随参数数线性增长，复用有限，访存与调度是合理的分析方向。但实际native fused实现可能已充分融合，不能因“自写融合”就解释全部性能优势。
 
-## 你的Triton实现做了哪些数值选择
+## Triton 实现的精度与舍入策略
 `training/triton_adamw.py` 的默认rounded路径在FP32中进行中间标量运算，存储dtype随参数与moment保留。它把beta的补数从host传入，用`tl.div_rn`处理若干除法，并关闭相应浮点融合；历史legacy路径保留作消融。
 
 ```python
@@ -23,11 +23,11 @@ denom = tl.div_rn(tl.sqrt(v), BC2) + EPS
 p = p - tl.div_rn(tl.div_rn(LR, BC1)*m, denom)
 ```
 
-C1/C2为什么不能总写为kernel内的1−B？因为“先舍入beta再求补数”与“先求补数再舍入”可能不同。native超参数可能使用double表达式，当前kernel使用FP32标量，因此仍非bitwise保证。
+C1/C2 由补数的计算顺序决定。先把 beta 舍入再求补数，与先求补数再舍入，可能得到不同的 FP32 值。原生实现可能用双精度表达式处理超参数，当前 Kernel 使用 FP32 标量，因此应使用数值对照验证，逐位相同需要额外的前提。
 
 代码还是按参数循环launch，不是一个全模型persistent optimizer；不要把另一个多张量实验的结论归给它。
 
-## 如何验证optimizer
+## 优化器的逐步对照验证
 只比较最终参数相对误差可能掩盖极小更新。应分别比较参数更新量、m/v、step、保存恢复后的下一步，以及多步loss轨迹。BF16参数/no-master设置与FP32 master训练不等价，不能跨设置直接宣称无损。
 
 ## 实验结论

@@ -20,9 +20,10 @@ python -m http.server 8000 --bind 127.0.0.1
 
 ## 目录与功能
 
-- 左侧章节目录、先修知识链接、右侧页内目录、上一章/下一章。
+- 左侧章节目录、章首先修链接、章末后续用途、右侧页内目录。
 - 全文搜索，快捷键 `Ctrl+K` / `Command+K` 或 `/`。
-- 学习地图、项目档案、术语索引、带出处的章节阅读。
+- 全局知识地图、五条分阶段路线、模块与重点章节流程图。
+- 项目档案、术语索引与带出处的章节阅读。
 - GEMM / KV Cache / FSDP 状态 / Ring All-Reduce 理论计算器。
 - 折叠自测答案、收藏、已读标记、本地笔记、JSON 备份导入/导出。
 - 浅色/深色、移动端目录、打印样式、单章 Markdown 导出。
@@ -34,7 +35,8 @@ python -m http.server 8000 --bind 127.0.0.1
 content/*.md              # 人工可编辑的正文
 content/catalog.json      # 目录、前置章节、来源与题目
 content/sources.json      # 来源清单与证据边界
-content/structure.json    # 章节组与阅读路径
+content/structure.json    # 章节组与模块说明
+content/roadmap.json      # 分阶段路线、模块流程图和章节流程图
 content/glossary.json     # 术语与正文对应关系
 assets/site.css           # 响应式样式
 assets/app.js             # 不依赖框架的交互代码

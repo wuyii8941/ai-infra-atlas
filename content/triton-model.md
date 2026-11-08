@@ -1,4 +1,4 @@
-## 为什么Triton不是另一种PyTorch运算调用
+## 由 Program ID 计算每组元素的索引
 PyTorch代码描述高层Tensor操作，通常由框架分发kernel。Triton让你直接描述每个program处理哪些逻辑元素、如何加载/计算/写回，由编译器再生成设备代码。它介于高层算子图和手写线程级CUDA之间。
 
 下面是教学向量加法。完整可运行版本位于 `labs/06_triton_add.py`，需要CUDA GPU、兼容PyTorch与Triton，不在浏览器执行。
@@ -23,8 +23,8 @@ def add_kernel(A, B, C, N: tl.constexpr, BLOCK: tl.constexpr):
 ## reduction与数学语义
 `tl.sum(x, axis=0)`是程序内逻辑张量的归约，编译器选择具体线程/warp通信方式。输入低精度提升到FP32，仍需考虑最后的cast、FMA融合和近似数学指令。不能因为代码短就忽略执行语义。
 
-## autograd与torch.compile不会凭空理解自定义kernel
+## 为自定义 Kernel 声明求导与编译契约
 一个手写forward kernel不会自动获得正确backward。需要使用合适的autograd包装或注册。若要接入编译图，还要说明输出shape/stride、输入是否被修改、alias与fake/meta行为。静态KV cache写入是mutation，错误声明为纯函数可能被编译器误优化。
 
-## 先正确再调优
+## 先验证语义再调优
 先测试小shape、边界shape、非连续入口契约、不同dtype和空输入政策，再比较reference。随后测kernel计时，最后测真实模型。遇到超出shared-memory资源或错误mask的候选，应保留失败记录，不能只挑跑得最快的一行。

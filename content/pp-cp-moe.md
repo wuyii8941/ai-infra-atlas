@@ -10,12 +10,12 @@
 
 CP与某些Sequence Parallel概念有交集，但在Megatron语境下SP常指TP周边特定activation的sequence切分，CP还涉及attention的上下文依赖。面试时先声明术语所处框架。
 
-## MoE为什么引入All-to-All
+## MoE 按专家归属交换 Token
 普通FFN每token经过同一组dense权重。MoE使用router为token选择少数专家，每个expert通常是一个FFN。专家分散在不同GPU时，需要把token dispatch到其专家，再把结果combine回来。
 
 All-to-All与All-Reduce不同：前者把不同数据发送给不同目的rank；后者做同位置数值规约。路由不均匀会使热点专家成为瓶颈，因此还需负载均衡、capacity与丢弃/不丢弃策略。
 
-## 总参数不等于活跃参数
+## 总参数与活跃参数的容量账本
 MoE可以有很多总权重，但每个token只激活一部分。计算量估算应关注活跃专家与共享组件，而显存和通信仍受总权重、路由和驻留策略影响。不能把dense的6P公式直接套在总MoE参数上。
 
 DeepSeek-V3使用MLA与MoE等结构，Qwen也有dense和MoE不同型号；你的1.7B及所验证8B为dense Qwen架构。这些并行机制作为扩展知识，不是当前仓库已经实现的功能。

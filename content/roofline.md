@@ -1,4 +1,4 @@
-## 两个相同 FLOPs 的程序为什么速度不同
+## 算术强度连接计算量与数据搬运量
 GPU 必须先拿到数据才能计算。若每次读取只做少量运算，就可能先耗尽带宽；若同一份数据被反复复用，才更可能接近计算吞吐上限。于是定义算术强度
 
 $$AI=\frac{F}{Q},$$
@@ -12,19 +12,19 @@ $$Q_{ideal}=b(MK+KN+MN).$$
 
 于是 $AI_{ideal}=2MNK/Q_{ideal}$。FP16、K=N=2048 时，M=1 的强度约1 FLOP/Byte，M=128 约113.8。原因是同一份 W 被更多输入行复用。实际读写可能高于这个理想值，也可能受缓存驻留影响，所以它不是硬件 counter。
 
-## 两条上界怎样组合
+## 合并计算与带宽上界
 设硬件在当前精度下峰值计算能力为 C FLOP/s、带宽为 B Byte/s。搬运 Q 字节至少要 Q/B 秒，计算 F 至少要 F/C 秒。理想重叠情况下
 
 $$T\ge\max(F/C,Q/B),\quad P\le\min(C,AI\cdot B).$$
 
 两条上界在 $AI=C/B$ 相交，这叫 ridge point。低于它时可能 memory-bound，高于它时可能 compute-bound。一个程序也可能因并行度不足、同步或调度而远离两条上界。
 
-## 不要遗漏 launch-bound
+## 单独检查 Kernel 提交与调度开销
 许多几微秒的小kernel串联时，Python dispatch 和提交间隙可能变成关键路径。CUDA Graph减少重复提交，而不是提高数学吞吐；fusion可能同时减少中间数据与提交次数。不能把“显存访问很多”和“带宽已经饱和”等同。
 
 RTX A6000 使用 GDDR6，并非 HBM。通用文献常写 HBM traffic；讨论本项目时更准确的说法是 global-memory / DRAM traffic。存储层名称与实际硬件要对齐。
 
-## Amdahl：局部改进为什么被稀释
+## 用 Amdahl 定律推导整体收益
 若原时间中某部分占比p，该部分获得s倍加速，其余不变：
 
 $$S_{total}=\frac{1}{(1-p)+p/s}.$$

@@ -1,7 +1,7 @@
 [
   {
     "id": "orientation",
-    "title": "从三个项目开始，建立学习地图",
+    "title": "学习导读：从一次模型执行建立全局视图",
     "section": "start",
     "summary": "把性能、数值可靠性和编译正确性放回同一条模型执行链。",
     "prereq": [],
@@ -28,7 +28,7 @@
   },
   {
     "id": "tensor-layout",
-    "title": "Tensor、stride 与 alias：一块内存怎样有多种形状",
+    "title": "Tensor、Stride 与 Alias：从逻辑坐标到物理地址",
     "section": "foundations",
     "summary": "从二维地址计算推导 view、transpose、contiguous 与 stride-0。",
     "prereq": [
@@ -93,7 +93,7 @@
   },
   {
     "id": "roofline",
-    "title": "Roofline：为什么 FLOPs 少也可能慢",
+    "title": "Roofline：从计算量和访存量推导性能上界",
     "section": "foundations",
     "summary": "从数据量推导 compute-bound、memory-bound、launch-bound 与 Amdahl 定律。",
     "prereq": [
@@ -260,7 +260,7 @@
   },
   {
     "id": "attention",
-    "title": "Self-Attention：为什么是 QKᵀ / √D",
+    "title": "Self-Attention：从投影、缩放点积到加权求和",
     "section": "model",
     "summary": "从相似度、方差与加权平均推导 attention，并跟踪全部 shape。",
     "prereq": [
@@ -363,7 +363,7 @@
   },
   {
     "id": "swiglu",
-    "title": "FFN 与 SwiGLU：为什么有三块权重",
+    "title": "FFN 与 SwiGLU：门控网络的三次线性投影",
     "section": "model",
     "summary": "从逐 token 特征变换走到 SiLU×Up 融合和 GEMM epilogue。",
     "prereq": [
@@ -398,7 +398,7 @@
   },
   {
     "id": "gqa-mla",
-    "title": "MHA、MQA、GQA 与 MLA：缓存什么，省在哪里",
+    "title": "MHA、MQA、GQA 与 MLA：KV Cache 的结构和容量",
     "section": "model",
     "summary": "从 head 共享推导 KV 容量，区分 Qwen 与 DeepSeek 的架构。",
     "prereq": [
@@ -540,7 +540,7 @@
   },
   {
     "id": "reduction-softmax",
-    "title": "Reduction 与 Online Softmax：怎样分块还保持同一答案",
+    "title": "Reduction 与 Online Softmax：分块统计的合并",
     "section": "gpu",
     "summary": "从树形归约到可合并的 max、denominator、output 三元组。",
     "prereq": [
@@ -652,7 +652,7 @@
   },
   {
     "id": "flashattention",
-    "title": "FlashAttention 与 Split-KV：IO与并行度是两件事",
+    "title": "FlashAttention 与 Split-KV：分块 IO 与解码并行度",
     "section": "gpu",
     "summary": "用Online Softmax连接精确attention、recomputation和decode分段。",
     "prereq": [
@@ -688,7 +688,7 @@
   },
   {
     "id": "profiling",
-    "title": "Profiling与Benchmark：让性能结论可追问",
+    "title": "Profiling 与 Benchmark：从计时到成本归因",
     "section": "gpu",
     "summary": "建立计时边界、消融、重复顺序与源码指纹。",
     "prereq": [
@@ -762,7 +762,7 @@
   },
   {
     "id": "cuda-graph",
-    "title": "Static KV Cache与CUDA Graph：稳定地址，不是固定内容",
+    "title": "Static KV Cache 与 CUDA Graph：固定地址上的状态更新",
     "section": "inference",
     "summary": "从图捕获的指针契约推导预分配、位置更新与重放。",
     "prereq": [
@@ -832,7 +832,7 @@
   },
   {
     "id": "quantization",
-    "title": "量化：W8A16为什么不是免费的显存减半",
+    "title": "量化：权重容量、反量化与推理开销",
     "section": "inference",
     "summary": "从scale、zero point到weight-only解码，解释速度与质量边界。",
     "prereq": [
@@ -970,7 +970,7 @@
   },
   {
     "id": "mixed-precision",
-    "title": "混合精度：compute、accumulation、storage与master不是一回事",
+    "title": "混合精度：计算、累加、存储与主权重",
     "section": "training",
     "summary": "解释loss scaling、BF16更新消失和跨实验不可混用的原因。",
     "prereq": [
@@ -1006,7 +1006,7 @@
   },
   {
     "id": "accum-recompute",
-    "title": "梯度累积与激活重算：用什么换显存",
+    "title": "梯度累积与激活重算：显存和计算的账本",
     "section": "training",
     "summary": "推导有效batch、loss权重以及recomputation必须恢复的状态。",
     "prereq": [
@@ -1075,7 +1075,7 @@
   },
   {
     "id": "fsdp-zero",
-    "title": "DDP、ZeRO、FSDP：为什么多卡不自动解决显存不足",
+    "title": "DDP、ZeRO 与 FSDP：从完整复制到分片训练",
     "section": "training",
     "summary": "从训练状态账本推导分片，而不是先背并行缩写。",
     "prereq": [
@@ -1224,7 +1224,7 @@
   },
   {
     "id": "checkpoints",
-    "title": "Checkpoint、HF导出与恢复：保存权重不等于保存训练",
+    "title": "训练 Checkpoint 与 HF 导出：状态保存和续训验证",
     "section": "training",
     "summary": "从下一次update需要什么，推导完整恢复契约和分片一致性。",
     "prereq": [
@@ -1367,7 +1367,7 @@
   },
   {
     "id": "triton-codegen",
-    "title": "Codegen、MLIR与PTX：生成的代码如何到达GPU",
+    "title": "Codegen、MLIR 与 PTX：从 IR 到可执行 Kernel",
     "section": "compiler",
     "summary": "讲清IR、pass、operation、TTIR、PTX与机器码的层次。",
     "prereq": [
@@ -1475,7 +1475,7 @@
   },
   {
     "id": "oracles",
-    "title": "差分测试与Tolerance：检测异常不等于证明根因",
+    "title": "差分测试与 Tolerance：从度量到可复现异常",
     "section": "reliability",
     "summary": "用oracle层次、数值契约、重复控制和负结果建立可靠判定。",
     "prereq": [
@@ -1510,7 +1510,7 @@
   },
   {
     "id": "dfuzz-config",
-    "title": "DFuzz第一阶段：为什么搜索训练配置，而不是只测算子",
+    "title": "DFuzz 第一阶段：搜索敏感训练配置",
     "section": "reliability",
     "summary": "把训练轨迹、fitness、kernel dispatch与遗传算法连接起来。",
     "prereq": [
@@ -1642,7 +1642,7 @@
   },
   {
     "id": "pool-bug",
-    "title": "案例复盘：3185与3200，怎样定位错误的Batch Stride",
+    "title": "案例复盘：用 3185 与 3200 的差异定位 Batch Stride",
     "section": "reliability",
     "summary": "从每个batch的内存范围推导症状，并说明隔离补丁能证明什么。",
     "prereq": [
@@ -1676,7 +1676,7 @@
   },
   {
     "id": "backward-bug",
-    "title": "案例复盘：Forward正确，为什么x.grad全零",
+    "title": "案例复盘：从全零梯度定位 Slice Scatter 的布局问题",
     "section": "reliability",
     "summary": "解析slice_scatter梯度与stride-0 metadata，避免只凭数值比较猜层次。",
     "prereq": [
@@ -1824,7 +1824,7 @@
   },
   {
     "id": "project-deepop",
-    "title": "项目档案 · DeepOpFuzz：三组评测不能混成一个覆盖率",
+    "title": "项目档案 · DeepOpFuzz：发现、根因回放与效率评测",
     "section": "projects",
     "summary": "区分新发现86个bug、30根因回放与48历史bug效率实验。",
     "prereq": [
@@ -1860,7 +1860,7 @@
   },
   {
     "id": "interview",
-    "title": "把知识变成技术论证：项目介绍、追问与学习检验",
+    "title": "项目复盘：用原理、实现和对照实验支持结论",
     "section": "projects",
     "summary": "不背“满分答案”，用可核对的因果链回答。",
     "prereq": [

@@ -1,9 +1,9 @@
-## 为什么“代码一样”仍可能结果不同
+## 代码之外的可复现条件
 模型权重、数据顺序、tokenizer、PyTorch/Triton/CUDA/driver、GPU型号、compiler options与随机状态共同决定运行条件。一个可复现实验至少需要环境清单、源码commit、输入/权重hash、运行命令和原始结果。只有截图不够。
 
 使用独立venv/Conda或容器，避免修改宿主系统Python。容器固定用户态依赖，不会自动固定宿主driver、GPU时钟、网络与文件系统。历史benchmark引用本机路径时先检查参数，不要盲目复制破坏已有checkpoint。
 
-## CPU数据管道如何拖慢GPU
+## CPU 数据管道决定 GPU 供给
 DataLoader可能等待磁盘、tokenization或CPU处理；pageable memory到GPU传输还涉及额外路径。Pinned memory和非阻塞传输可以为重叠创造条件，但前提是缓冲生命周期与stream依赖正确。更多worker不一定更快，可能增加内存、随机性和I/O竞争。
 
 看到GPU空闲，先区分数据未准备、CPU dispatch、同步等待、通信阻塞与真正kernel执行。不要仅凭utilization=0就重启一个正在CPU初始化大模型的任务。

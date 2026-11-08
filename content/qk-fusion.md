@@ -1,9 +1,9 @@
-## 这段优化到底位于哪里
+## 融合在 Attention 数据流中的位置
 Qwen3 attention先执行Q/K/V projection，再做per-head Q/K norm与RoPE，之后才进入Flash SDPA。项目融合的是attention前处理，不是替换attention score/PV算法。其数学次序仍是Norm→RoPE。
 
 在1.7B示例中，Q为 `[B,T,16,128]`，K为 `[B,T,8,128]`。每个head自己的D维完成归约与旋转，不需要与其他head交换统计量，因此一个program处理一行head是自然起点。
 
-## Grid怎么从shape得到
+## 由张量形状确定 Launch Grid
 真实实现把Q与K放在同一个launch中：
 
 ```python
@@ -16,7 +16,7 @@ t = token % T
 
 B1/T128时，grid为 $1\times128\times(16+8)=3072$ 个program。head<16用Q和WQ，否则用K和WK。这是program内一致的分支，不是lane随机分支。
 
-## 一个program内部发生什么
+## 单个 Program 的读取、归约与写回
 逻辑索引 `d=arange(0,BLOCK)` 加载D个有效元素。`p=where(d<D/2,d+D/2,d-D/2)`定位RoPE搭档。代码分别加载x/xp和w/wp，用x的FP32平方和求inv，再计算归一化、scale、cos/sin旋转。
 
 ```python
@@ -40,12 +40,12 @@ $$offset=((bC+position)H_{kv}+h)D+d.$$
 
 后续版本可在K program中顺便写相应V。V只是复制，不能做QK norm/RoPE。公共校验入口要求contiguous，内部模型适配入口的stride契约更灵活，这两条入口不能混说。
 
-## 省掉多少逻辑数据
+## 核算省下的逻辑读写量
 B1/T128、Q16/K8、D128、FP16下，Q norm中间结果0.5MiB，K为0.25MiB。若完整中间结果各写一次再读一次，可避免约1.5MiB逻辑流量/层。这是理论估计，不是DRAM counter，实际cache和其它读取不在此式。
 
 28层每层由四次Q norm/K norm/Q RoPE/K RoPE变成一次，可减少84次launch。compact GQA再减少特定adapter每层两次复制，共56次。报告kernel事件629→489，恰好少140，提供结构与profiling对应证据。
 
-## 实验如何解释
+## 从算子测试到端到端证据
 报告FP16 B1/S128：旧优化路径prefill 22.460ms、decode 22.633ms；只加fusion为18.909/19.119ms；只加compact GQA为19.761/19.780ms；组合为16.642/16.934ms。五路径对照没有使用CUDA Graph。不能与后续16步Graph pipeline结果直接相加。
 
 单独Q布局55.4→29.1μs来自另一个BF16实验，不是本表FP16融合的分项时间。BF16整模型仍有超过预设门槛的输入，不宣称全面无损。

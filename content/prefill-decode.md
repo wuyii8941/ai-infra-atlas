@@ -1,9 +1,9 @@
-## 两个阶段的输入不同
+## Prefill 建立缓存，Decode 逐步追加
 Prefill一次处理已有prompt；每层产生prompt位置的K/V，并形成首次生成所需输出。Decode之后逐次处理新token，复用历史K/V。小batch下Linear的M从B×S变为B×1，但权重大小不变。
 
 以前章GEMM强度为例：小M使一份权重服务的输入行少，权重读取更难摊销。大M更容易用数据复用接近计算上限。不是每个prefill算子都compute-bound，也不是每种decode配置都memory-bound。
 
-## Attention的工作量如何变
+## 从 Query 和 KV 长度推导 Attention 成本
 prefill的QK/PV约随S²增长。decode的新query长度1，Attention每步读取的有效K/V长度从prompt开始逐步增大，单步score/PV随cache长度线性增长。Linear权重成本近似不随cache长度改变，因此整模型latency不一定跟S成正比。
 
 KV cache只避免历史K/V重算，不能消除新token在所有层的Linear、norm、MLP和LM Head计算。

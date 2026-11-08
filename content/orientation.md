@@ -1,28 +1,29 @@
-## 这不是一份名词清单
-语言模型的每个 token 都要经过张量计算。框架把计算交给编译器、GPU 和运行时；训练又引入反向传播、优化器和多卡通信。AI Infra 关心这条链能否**跑得动、跑得快、算得对**。三个目标有关联，却需要不同证据。
+## 从一次模型执行建立全站坐标
+从一段文本开始。分词器输出 Token ID，Embedding 把 ID 转成向量，Decoder Block 逐层更新向量，最后由 LM Head 得到 logits。**同一套模型前向，是推理、训练和编译路线共享的参照。**
 
-本教程借鉴 AIInfraGuide 的分层学习形式，正文与例子按你的三个项目重新组织，不转载其文章。每篇先说明问题的来源，再推导数学与数据流，最后连接源码、实验和边界。
+1. **建立表示。** 用 shape 描述逻辑坐标，用 stride 定位物理地址。由矩阵的形状数出点积次数，再由 dtype 估计数据字节数。
+2. **跟踪模型前向。** 先写出每个算子的输入与输出，再连接 Attention、MLP 和两次残差更新。这个数据流给出实现必须保持的语义。
+3. **分开两种用途。** 推理根据 logits 生成 Token，并在下一次 Decode 复用历史 KV。训练用 logits 和标签计算 Loss，反向求导，再由优化器更新参数。
+4. **解释执行。** 选定一段前向或反向计算，追踪它如何变成 GPU 上的算子与读写。用性能基线核算耗时，用语义基线比较输出和梯度。
 
-<div class="flow"><span>模型数学</span><span>Tensor / Autograd</span><span>Compiler / Kernel</span><span>GPU / Runtime</span><span>数值与性能验证</span></div>
+[打开总图和分阶段路线](#map)；带着一个具体形状开始时，可从 [Tensor 与 Stride](#article/tensor-layout) 进入。
 
-## 三个项目分别回答什么
-**Qwen3-Triton** 研究执行效率：相同模型计算如何减少布局复制、启动开销和训练状态驻留。其单卡推理、单卡训练、多卡分片是不同实验分支，不应编造成未经记录的线性研发历史。
+## 三个项目对应三类系统目标
+**Qwen3-Triton** 研究执行效率。单卡推理关注布局复制与提交开销，单卡训练关注优化器与激活的开销，多卡分片关注各 Rank 的状态驻留。
 
-**DFuzz** 研究训练轨迹的数值偏差：同一优化开关的 ON/OFF 执行，在哪些配置与输入下产生显著不同的 loss 轨迹。Megatron-LM 是实际测试框架之一，不是仅供背景介绍的分布式知识。
+**DFuzz** 在相同初始条件下比较优化开关 ON/OFF 的 Loss 轨迹，并搜索更容易暴露差异的配置与输入。Megatron-LM 是实际测试框架之一。
 
-**DeepOpFuzz** 研究编译正确性：怎样构造条件，让编译器选择特定 operation 并观察生成产物，进一步检测输出、梯度或执行语义错误。
+**DeepOpFuzz** 根据目标操作构造计算图与输入，检查生成产物确认实际触达，再对照输出、梯度或执行行为。
 
-## 怎样阅读
-零基础路线先读 [Tensor 与 stride](#article/tensor-layout)、[矩阵计算量](#article/gemm-flops) 和 [token 到 loss](#article/tokens-loss)，再进入 Transformer。Kernel 路线从模型算子走到 Triton 和 QK Fusion。训练路线从梯度、AdamW 的状态走到 collective 与 FSDP。Compiler 路线从 graph capture 走到 artifact 与两个真实 bug。
+## 按依赖顺序选择阅读路线
+基础路线先建立 [张量地址](#article/tensor-layout)、[矩阵计算量](#article/gemm-flops) 和 [Autograd](#article/autograd)，再把这些知识用到 [Token 到 Loss](#article/tokens-loss) 与 [Decoder Block](#article/transformer)。已有模型基础时，可以从学习地图选一条分支。章首列出直接依赖，章末列出使用本章结论的后续章节。
 
-不要跳过前置章节。一个词第一次出现时可能有一句定义，完整解释会在对应链接中展开。例如 GQA 不是“一个更快的 attention 函数”，而是 head 共享设计；CUDA Graph 不是让所有算子变成一个 kernel。
-
-## 网站怎样表达证据
+## 公式、源码与实验的证据层级
 标为**原理与推导**的段落是教学解释，算式中的例子不等于项目实测。标为**源码与实验**的章节来自固定仓库版本或上传论文。标为**扩展知识**的部分不构成你的项目贡献。
 
 Qwen 源码固定在 `10be3d87`；DeepOpFuzz 仓库固定在 `c69ead1b`。历史报告里的 2.5.1 推理环境、2.10 训练环境与 compiler 测试环境不同。本站没有在 GPU 上重新执行这些项目实验，性能数字按报告口径呈现。
 
-## 什么算真正掌握
+## 用可复算结果检查理解
 读完定义只是第一步。合格的理解是：给定一个具体 shape，能写出地址或计算量；给定一个优化，能说明它省了什么、增加了什么；给定一组数据，能判断是否足以支持结论。每篇末尾的折叠题和实践任务就是为此设计。
 
 网站不打包你的论文 PDF、简历、私有日志或模型权重。公开部署前仍应确认论文与研究结果可对外展示。

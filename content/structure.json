@@ -4,7 +4,7 @@
       "id": "start",
       "number": "00",
       "title": "导读与路线",
-      "summary": "从自己的三个项目理解 AI Infra。"
+      "summary": "用同一个模型执行过程组织学习路线与项目证据。"
     },
     {
       "id": "foundations",
@@ -16,7 +16,7 @@
       "id": "model",
       "number": "02",
       "title": "Transformer 与模型算子",
-      "summary": "理解计算为何存在，再谈如何优化。"
+      "summary": "从输入向量追踪注意力、门控网络和残差更新。"
     },
     {
       "id": "gpu",
@@ -46,113 +46,13 @@
       "id": "reliability",
       "number": "07",
       "title": "数值可靠性与 Fuzzing",
-      "summary": "测试到什么，能看见什么错误。"
+      "summary": "用差分对照、定向搜索和最小复现验证执行语义。"
     },
     {
       "id": "projects",
       "number": "08",
       "title": "项目档案与面试复盘",
-      "summary": "让每个结果都能沿证据追问。"
-    }
-  ],
-  "paths": [
-    {
-      "id": "foundation",
-      "name": "从零建立全貌",
-      "label": "基础路线",
-      "desc": "先掌握 tensor 与计算量，再把 Attention、GPU 和训练串起来。",
-      "items": [
-        "orientation",
-        "tensor-layout",
-        "gemm-flops",
-        "roofline",
-        "floating-point",
-        "tokens-loss",
-        "transformer",
-        "attention",
-        "autograd",
-        "gpu-execution",
-        "interview"
-      ]
-    },
-    {
-      "id": "kernel",
-      "name": "Kernel / Inference",
-      "label": "性能路线",
-      "desc": "从 Qwen 数据流走向 Triton 实现与端到端归因。",
-      "items": [
-        "gemm-flops",
-        "roofline",
-        "rmsnorm",
-        "rope",
-        "swiglu",
-        "gqa-mla",
-        "gpu-memory",
-        "triton-model",
-        "qk-fusion",
-        "flashattention",
-        "prefill-decode",
-        "cuda-graph",
-        "profiling",
-        "project-qwen"
-      ]
-    },
-    {
-      "id": "training",
-      "name": "Training / Distributed",
-      "label": "训练路线",
-      "desc": "先解释梯度和优化器状态，再理解全分片生命周期。",
-      "items": [
-        "autograd",
-        "adamw",
-        "tied-grad",
-        "mixed-precision",
-        "accum-recompute",
-        "collectives",
-        "fsdp-zero",
-        "block-fsdp",
-        "megatron-tp",
-        "pp-cp-moe",
-        "checkpoints"
-      ]
-    },
-    {
-      "id": "compiler",
-      "name": "Compiler / Reliability",
-      "label": "研究路线",
-      "desc": "把模型语义、编译选择和可观察的错误连接起来。",
-      "items": [
-        "tensor-layout",
-        "floating-point",
-        "dynamo",
-        "aotautograd",
-        "inductor",
-        "triton-codegen",
-        "custom-ops",
-        "compiler-debug",
-        "oracles",
-        "deepop-method",
-        "pool-bug",
-        "backward-bug",
-        "project-deepop"
-      ]
-    },
-    {
-      "id": "dfuzz",
-      "name": "Megatron / DFuzz",
-      "label": "数值路线",
-      "desc": "从浮点与训练动态出发，理解两阶段搜索和真实案例。",
-      "items": [
-        "floating-point",
-        "autograd",
-        "rmsnorm",
-        "adamw",
-        "oracles",
-        "dfuzz-config",
-        "dfuzz-input",
-        "dfuzz-megatron",
-        "project-dfuzz"
-      ]
+      "summary": "按基线、实现、测量与范围组织项目结论。"
     }
   ]
 }

@@ -1,4 +1,4 @@
-## 为什么这份实现值得逐行读
+## 原型的验证目标与执行边界
 它在真实8B级Qwen架构checkpoint上验证全参数短程训练，但采用同步collective、无通信重叠、确定性block。其价值是一个完整的shard生命周期，不是新的NCCL算法。
 
 ## 初始化：结构与存储分开
@@ -18,7 +18,7 @@ shared字典按参数身份复用master shard，tied embedding/head可拥有同�
 
 <div class="flow"><span>FP32 shard</span><span>BF16 all-gather</span><span>Forward</span><span>重聚合＋重算</span><span>梯度</span><span>FP32 reduce-scatter</span><span>本地AdamW</span></div>
 
-## 显存数字怎样对齐
+## 从参数量推导显存并对照峰值
 真实P=8,190,735,360。BF16全权重约15.26GiB；master+m+v约91.54GiB，4卡理想持久分摊约22.88GiB；加FP32 gradient shard约30.51GiB。还需完整当前unit、activation和workspace，因此35.7568GiB测量峰值不等于简单12P/4。
 
 S512、每卡B1、4卡、真实WikiText、3次更新通过；初始及导出重载对应logits最大误差0，仅是有限测试观测。Q projection约18.63%的BF16元素发生变化，说明实际更新，不证明全部参数更新幅度相同。
@@ -26,5 +26,5 @@ S512、每卡B1、4卡、真实WikiText、3次更新通过；初始及导出重�
 ## 工程限制
 仅同有效token数与相同collective顺序；拒绝随机dropout重算、高阶梯度等未支持情况。无跨节点、弹性world size或自动overlap。完整8B optimizer checkpoint未因磁盘限制而验证，不能把HF BF16权重导出称为精确恢复。真实checkpoint是DeepSeek-R1-0528-Qwen3-8B，不是原版Qwen3-8B下载完成。
 
-## 如何验证一个改动
+## 从梯度到恢复的分级验证
 先小模型tied/untied多rank对照所有grad与连续更新，再故意破坏参数/optimizer做恢复测试，最后做真实模型功能验证。性能对照需要剥离诊断成本，并与相同精度、重算、unit策略的官方baseline比较；当前项目没有这个性能胜出结论。

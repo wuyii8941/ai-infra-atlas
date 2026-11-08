@@ -23,7 +23,7 @@ def convert_markdown(raw: str) -> tuple[str, list[dict]]:
     proc = subprocess.run(
         ['pandoc', '--from=markdown+tex_math_dollars+raw_html', '--to=html5',
          '--mathml', '--no-highlight', '--wrap=none'],
-        input=raw, text=True, capture_output=True, check=True, timeout=30,
+        input=raw, encoding='utf-8', capture_output=True, check=True, timeout=30,
     )
     if proc.stderr.strip():
         print(proc.stderr.strip(), file=sys.stderr)
@@ -46,6 +46,7 @@ def main() -> None:
     content = ROOT/'content'
     catalog = json.loads((content/'catalog.json').read_text(encoding='utf-8'))
     structure = json.loads((content/'structure.json').read_text(encoding='utf-8'))
+    roadmap = json.loads((content/'roadmap.json').read_text(encoding='utf-8'))
     sources = json.loads((content/'sources.json').read_text(encoding='utf-8'))
     glossary = json.loads((content/'glossary.json').read_text(encoding='utf-8'))
     section_order = {s['id']: i for i,s in enumerate(structure['sections'])}
@@ -67,16 +68,31 @@ def main() -> None:
         if a['lab'] and not (ROOT/a['lab']).is_file():raise SystemExit(f"Missing lab {a['lab']}")
     for g in glossary:
         if g['article'] not in ids:raise SystemExit('Invalid glossary target')
-    for p in structure['paths']:
-        if not set(p['items'])<=ids:raise SystemExit('Invalid learning path')
-    labs={str(p.relative_to(ROOT)):p.read_text(encoding='utf-8') for p in sorted((ROOT/'labs').glob('*.py'))}
-    payload=dict(articles=catalog,sections=structure['sections'],paths=structure['paths'],
+    prereqs = {a['id']: a['prereq'] for a in catalog}
+    for path in roadmap['paths']:
+        items = [aid for stage in path['stages'] for aid in stage['items']]
+        order = {aid: index for index, aid in enumerate(items)}
+        if not set(items) <= ids or len(items) != len(order):
+            raise SystemExit(f"Unknown or duplicate chapter in path {path['id']}")
+        for aid in items:
+            for prereq in prereqs[aid]:
+                if prereq in order and order[prereq] >= order[aid]:
+                    raise SystemExit(f"Path {path['id']} places {aid} before {prereq}")
+    for group, valid_ids in [('sections', section_order), ('chapters', ids)]:
+        for key, diagram in roadmap[group].items():
+            if key not in valid_ids or len(diagram['steps']) < 2:
+                raise SystemExit(f'Invalid diagram: {key}')
+            for step in diagram['steps']:
+                if 'article' in step and step['article'] not in ids:
+                    raise SystemExit(f"Invalid diagram link: {step['article']}")
+    labs={p.relative_to(ROOT).as_posix():p.read_text(encoding='utf-8') for p in sorted((ROOT/'labs').glob('*.py'))}
+    payload=dict(articles=catalog,sections=structure['sections'],roadmap=roadmap,
                  sources=sources,glossary=glossary,labs=labs,
-                 quizCount=sum(len(a['checks']) for a in catalog),version='1.0')
+                 quizCount=sum(len(a['checks']) for a in catalog),version='1.1')
     data=json.dumps(payload,ensure_ascii=False,separators=(',',':')).replace('<','\\u003c').replace('\u2028','\\u2028').replace('\u2029','\\u2029')
     template=(ROOT/'assets/template.html').read_text(encoding='utf-8')
     page=template.replace('@@CSS@@',(ROOT/'assets/site.css').read_text(encoding='utf-8')).replace('@@DATA@@',data).replace('@@JS@@',(ROOT/'assets/app.js').read_text(encoding='utf-8'))
-    (ROOT/'index.html').write_text(page,encoding='utf-8')
+    (ROOT/'index.html').write_text(page, encoding='utf-8', newline='\n')
     (ROOT/'.nojekyll').touch()
     print(f'Built {len(catalog)} chapters / {payload["quizCount"]} questions / {len(sources)} sources / {len(page.encode())/1024:.0f} KiB')
 
